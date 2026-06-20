@@ -1,0 +1,370 @@
+{% extends 'email_forensics/base_forensics.html' %}
+{% load static %}
+
+{% block forensics_content %}
+<div class="social-container">
+    <div class="social-header">
+        <div class="social-title">
+            <i class="fas fa-users"></i>
+            <div>
+                <h2>Social Profile Discovery</h2>
+                <p>Find social media profiles associated with emails and usernames</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="social-search-card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="search-grid">
+                    <div class="search-group">
+                        <label>Search Type</label>
+                        <select name="search_type" class="form-select">
+                            <option value="username">Username</option>
+                            <option value="email">Email Address</option>
+                        </select>
+                    </div>
+                    <div class="search-group">
+                        <label>Query</label>
+                        <input type="text" name="query" class="form-control" 
+                               placeholder="Enter username or email..."
+                               value="{{ query }}" required>
+                    </div>
+                    <div class="search-group" style="justify-content: flex-end;">
+                        <button type="submit" class="btn-intel">
+                            <i class="fas fa-search"></i> Discover Profiles
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    {% if result %}
+    <div class="social-results">
+        <!-- Summary -->
+        <div class="social-summary-card">
+            <div class="summary-header">
+                <h5><i class="fas fa-chart-bar"></i> Discovery Summary</h5>
+            </div>
+            <div class="summary-body">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-number">{{ result.profiles|length|default:0 }}</span>
+                        <span class="summary-label">Profiles Found</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-number">{{ result.summary.platforms|length|default:0 }}</span>
+                        <span class="summary-label">Platforms</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-number">{{ result.query }}</span>
+                        <span class="summary-label">Searched Query</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profiles Grid -->
+        {% if result.profiles %}
+        <div class="social-profiles-grid">
+            {% for profile in result.profiles %}
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-platform" style="background: {{ profile.color|default:'#1a2332' }};">
+                        <i class="{{ profile.icon|default:'fas fa-user' }}"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h5>{{ profile.platform }}</h5>
+                        <span class="profile-username">{{ profile.username }}</span>
+                    </div>
+                    <span class="confidence-badge {{ profile.confidence|lower }}">
+                        {{ profile.confidence }}
+                    </span>
+                </div>
+                <div class="profile-body">
+                    {% if profile.bio %}
+                    <p class="profile-bio">{{ profile.bio|truncatechars:100 }}</p>
+                    {% endif %}
+                    {% if profile.location %}
+                    <span class="profile-location"><i class="fas fa-map-marker-alt"></i> {{ profile.location }}</span>
+                    {% endif %}
+                    {% if profile.followers %}
+                    <span class="profile-stats"><i class="fas fa-users"></i> {{ profile.followers }} followers</span>
+                    {% endif %}
+                    {% if profile.repos %}
+                    <span class="profile-stats"><i class="fas fa-code"></i> {{ profile.repos }} repos</span>
+                    {% endif %}
+                    {% if profile.source %}
+                    <span class="profile-source">Source: {{ profile.source }}</span>
+                    {% endif %}
+                </div>
+                <div class="profile-footer">
+                    <a href="{{ profile.url }}" target="_blank" class="btn-intel-outline" style="width: 100%; justify-content: center; padding: 6px 12px; font-size: 0.85rem;">
+                        <i class="fas fa-external-link-alt"></i> View Profile
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="social-empty">
+            <i class="fas fa-users" style="color: var(--text-muted);"></i>
+            <h4>No Profiles Found</h4>
+            <p>No social media profiles were found for <strong>{{ result.query }}</strong>.</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.social-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.social-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.social-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.social-title i {
+    font-size: 2rem;
+    color: var(--accent-primary);
+}
+
+.social-title h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.social-title p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.social-search-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.social-search-card .card-body {
+    padding: 20px;
+}
+
+.social-results {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.social-summary-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.social-summary-card .summary-header {
+    padding: 14px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.social-summary-card .summary-header h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.social-summary-card .summary-header h5 i {
+    color: var(--accent-primary);
+    margin-right: 8px;
+}
+
+.social-summary-card .summary-body {
+    padding: 20px;
+}
+
+.social-profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.profile-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.profile-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-platform {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.profile-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-info h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.profile-username {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.confidence-badge {
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.confidence-badge.high {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+}
+
+.confidence-badge.medium {
+    background: rgba(255, 165, 2, 0.15);
+    color: #ffa502;
+}
+
+.confidence-badge.low {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.profile-body {
+    padding: 14px 16px;
+}
+
+.profile-bio {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin: 0 0 8px;
+    line-height: 1.5;
+}
+
+.profile-location {
+    display: inline-block;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-right: 12px;
+}
+
+.profile-stats {
+    display: inline-block;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-right: 12px;
+}
+
+.profile-source {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    margin-top: 4px;
+}
+
+.profile-footer {
+    padding: 10px 16px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+}
+
+.social-empty {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.social-empty i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+}
+
+.social-empty h4 {
+    color: var(--text-primary);
+    margin: 0 0 8px;
+}
+
+.social-empty p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .search-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .social-profiles-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+</style>
+{% endblock %}

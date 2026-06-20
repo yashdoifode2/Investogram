@@ -4,320 +4,273 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>{% block title %}Dashboard{% endblock %} | CyberIntel Platform</title>
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-
-<div class="app-container">
-
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="fas fa-shield-halved"></i>
-                <span>CyberIntel</span>
-                <span class="logo-badge">v2.0</span>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <!-- Main Section -->
-            <div class="nav-section">
-                <span class="nav-section-label">Main</span>
-                <ul>
-                    <!-- Dashboard -->
-                    <li>
-                        <a href="{% url 'accounts:dashboard' %}"
-                           class="{% if request.path == '/' or request.path == '/dashboard/' %}active{% endif %}">
-                            <i class="fas fa-th-large"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-
-                    <!-- Profile -->
-                    <li>
-                        <a href="{% url 'accounts:profile' %}"
-                           class="{% if 'profile' in request.path and 'edit' not in request.path and 'change_password' not in request.path %}active{% endif %}">
-                            <i class="fas fa-user-circle"></i>
-                            <span>Profile</span>
-                        </a>
-                    </li>
-
-                    <!-- Settings -->
-                    <li>
-                        <a href="{% url 'accounts:profile_edit' %}"
-                           class="{% if 'profile/edit' in request.path %}active{% endif %}">
-                            <i class="fas fa-cog"></i>
-                            <span>Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Intelligence Section -->
-            <div class="nav-section">
-                <span class="nav-section-label">Intelligence</span>
-                <ul>
-                    <!-- Intelligence Dashboard -->
-                    <li>
-                        <a href="{% url 'intelligence:dashboard' %}"
-                           class="{% if 'intelligence' in request.path and 'settings' not in request.path and 'ip' not in request.path and 'email' not in request.path and 'phone' not in request.path and 'url' not in request.path and 'breach' not in request.path %}active{% endif %}">
-                            <i class="fas fa-shield-alt"></i>
-                            <span>Intelligence Hub</span>
-                        </a>
-                    </li>
-
-                    <!-- IP Intelligence -->
-                    <li>
-                        <a href="{% url 'intelligence:ip_lookup' %}"
-                           class="{% if 'ip' in request.path %}active{% endif %}">
-                            <i class="fas fa-network-wired"></i>
-                            <span>IP Intelligence</span>
-                        </a>
-                    </li>
-
-                    <!-- Email Intelligence -->
-                    <li>
-                        <a href="{% url 'intelligence:email_lookup' %}"
-                           class="{% if 'email' in request.path %}active{% endif %}">
-                            <i class="fas fa-envelope"></i>
-                            <span>Email Intelligence</span>
-                        </a>
-                    </li>
-
-                    <!-- Phone Intelligence -->
-                    <li>
-                        <a href="{% url 'intelligence:phone_lookup' %}"
-                           class="{% if 'phone' in request.path %}active{% endif %}">
-                            <i class="fas fa-phone"></i>
-                            <span>Phone Intelligence</span>
-                        </a>
-                    </li>
-
-                    <!-- URL Intelligence -->
-                    <li>
-                        <a href="{% url 'intelligence:url_lookup' %}"
-                           class="{% if 'url' in request.path %}active{% endif %}">
-                            <i class="fas fa-link"></i>
-                            <span>URL Intelligence</span>
-                        </a>
-                    </li>
-
-                    <!-- Breach Intelligence -->
-                    <li>
-                        <a href="{% url 'intelligence:breach_lookup' %}"
-                           class="{% if 'breach' in request.path %}active{% endif %}">
-                            <i class="fas fa-user-secret"></i>
-                            <span>Breach Intelligence</span>
-                        </a>
-                    </li>
-
-                    <!-- Search History -->
-                    <li>
-                        <a href="{% url 'intelligence:search_history' %}"
-                           class="{% if 'history' in request.path %}active{% endif %}">
-                            <i class="fas fa-history"></i>
-                            <span>Search History</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Tools Section -->
-            <div class="nav-section">
-                <span class="nav-section-label">Tools</span>
-                <ul>
-                    <!-- API Settings -->
-                    <li>
-                        <a href="{% url 'intelligence:settings' %}"
-                           class="{% if 'settings' in request.path %}active{% endif %}">
-                            <i class="fas fa-key"></i>
-                            <span>API Settings</span>
-                        </a>
-                    </li>
-
-                    <!-- Audit Log -->
-                   <!-- In the sidebar, add this under API Settings -->
-<li>
-    <a href="{% url 'core_settings:audit_log' %}">
-        <i class="fas fa-clipboard-list"></i>
-        <span>Audit Log</span>
-    </a>
-</li>
-                </ul>
-            </div>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user-card">
-                <div class="user-card-avatar">
-                    {% if user.profile_picture and user.profile_picture.url %}
-                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
-                    {% else %}
-                        <div class="avatar-placeholder">{{ user.username|first|upper }}</div>
-                    {% endif %}
-                    <span class="status-dot online"></span>
-                </div>
-                <div class="user-card-info">
-                    <span class="user-card-name">{{ user.get_full_name|default:user.username }}</span>
-                    <span class="user-card-role">{% if user.is_staff %}Administrator{% else %}Analyst{% endif %}</span>
+    <div class="app-container">
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-shield-halved"></i>
+                    <span>CyberIntel</span>
+                    <span class="logo-badge">v2.0</span>
                 </div>
             </div>
-            <form method="post" action="{% url 'accounts:logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </button>
-            </form>
-        </div>
-
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-
-        <!-- Header -->
-        <header class="header">
-
-            <div class="header-left">
-                <button class="toggle-sidebar" id="toggleSidebar" aria-label="Toggle Sidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
-
-                <div class="page-title">
-                    <h1>{% block page_title %}Dashboard{% endblock %}</h1>
-                    <p class="subtitle">
-                        {% block page_subtitle %}Cyber Intelligence Platform{% endblock %}
-                    </p>
-                </div>
-            </div>
-
-            <div class="header-right">
-
-                <div class="header-actions">
-                    <button class="header-action-btn" aria-label="Search">
-                        <i class="fas fa-search"></i>
-                    </button>
-                    <div class="notifications" aria-label="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </div>
+            
+            <nav class="sidebar-nav">
+                <!-- Main Section -->
+                <div class="nav-section">
+                    <span class="nav-section-label">Main</span>
+                    <ul>
+                        <li>
+                            <a href="{% url 'accounts:dashboard' %}" class="{% if request.path == '/' or request.path == '/dashboard/' %}active{% endif %}">
+                                <i class="fas fa-th-large"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'accounts:profile' %}" class="{% if 'profile' in request.path and 'edit' not in request.path and 'change' not in request.path %}active{% endif %}">
+                                <i class="fas fa-user-circle"></i>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'accounts:profile_edit' %}" class="{% if 'profile/edit' in request.path %}active{% endif %}">
+                                <i class="fas fa-cog"></i>
+                                <span>Settings</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
 
-                <div class="user-dropdown" id="userDropdown">
-
-                    <div class="user-info">
-
-                        {% if user.profile_picture and user.profile_picture.url %}
-                            <img src="{{ user.profile_picture.url }}"
-                                 alt="Profile"
-                                 class="avatar">
-                        {% else %}
-                            <div class="avatar-placeholder">
-                                {{ user.username|first|upper }}
-                            </div>
-                        {% endif %}
-
-                        <span class="user-name">
-                            {{ user.get_full_name|default:user.username }}
-                        </span>
-
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-
-                    <div class="dropdown-menu" id="dropdownMenu">
-
-                        <div class="dropdown-header">
-                            <div class="name">
-                                {{ user.get_full_name|default:user.username }}
-                            </div>
-                            <div class="email">
-                                {{ user.email }}
-                            </div>
-                        </div>
-
-                        <hr>
-
-                        <a href="{% url 'accounts:profile' %}">
-                            <i class="fas fa-user"></i>
-                            My Profile
-                        </a>
-
-                        <a href="{% url 'accounts:profile_edit' %}">
-                            <i class="fas fa-edit"></i>
-                            Edit Profile
-                        </a>
-
-                        <a href="{% url 'accounts:change_password' %}">
-                            <i class="fas fa-key"></i>
-                            Change Password
-                        </a>
-
-                        <a href="{% url 'intelligence:settings' %}">
-                            <i class="fas fa-cog"></i>
-                            API Settings
-                        </a>
-
-                        <hr>
-
-                        <form method="post" action="{% url 'accounts:logout' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="logout-item">
-                                <i class="fas fa-sign-out-alt"></i>
-                                Logout
-                            </button>
-                        </form>
-
-                    </div>
+                <!-- Intelligence Section -->
+                <div class="nav-section">
+                    <span class="nav-section-label">Intelligence</span>
+                    <ul>
+                        <li>
+                            <a href="{% url 'intelligence:dashboard' %}" class="{% if 'intelligence' in request.path and 'settings' not in request.path %}active{% endif %}">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Intelligence Hub</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'intelligence:ip_lookup' %}" class="{% if 'ip' in request.path %}active{% endif %}">
+                                <i class="fas fa-network-wired"></i>
+                                <span>IP Intelligence</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'intelligence:email_lookup' %}" class="{% if 'email' in request.path %}active{% endif %}">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email Intelligence</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'intelligence:phone_lookup' %}" class="{% if 'phone' in request.path %}active{% endif %}">
+                                <i class="fas fa-phone"></i>
+                                <span>Phone Intelligence</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'intelligence:url_lookup' %}" class="{% if 'url' in request.path %}active{% endif %}">
+                                <i class="fas fa-link"></i>
+                                <span>URL Intelligence</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'intelligence:breach_lookup' %}" class="{% if 'breach' in request.path %}active{% endif %}">
+                                <i class="fas fa-user-secret"></i>
+                                <span>Breach Intelligence</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'intelligence:search_history' %}" class="{% if 'history' in request.path %}active{% endif %}">
+                                <i class="fas fa-history"></i>
+                                <span>Search History</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
 
-            </div>
-
-        </header>
-
-        <!-- Messages -->
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
-
-                {{ message }}
-
-                <button class="close-alert" aria-label="Close alert">
-                    &times;
-                </button>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Content -->
-        <div class="content {% if not messages %}no-messages{% endif %}">
-            {% block content %}
-            {% endblock %}
-        </div>
-
-    </main>
-
+               <!-- Add this section in the sidebar -->
+<!-- Forensics Section -->
+<!-- Forensics Section -->
+<div class="nav-section">
+    <span class="nav-section-label">Forensics</span>
+    <ul>
+        <li>
+            <a href="{% url 'email_forensics:dashboard' %}" class="{% if 'forensics' in request.path and 'analyze' not in request.path and 'history' not in request.path and 'breach' not in request.path and 'social' not in request.path and 'attachment' not in request.path %}active{% endif %}">
+                <i class="fas fa-bug"></i>
+                <span>Forensics Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'email_forensics:analyze_email' %}" class="{% if 'analyze' in request.path %}active{% endif %}">
+                <i class="fas fa-envelope-open-text"></i>
+                <span>Analyze Email</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'email_forensics:breach_intelligence' %}" class="{% if 'breach' in request.path %}active{% endif %}">
+                <i class="fas fa-database"></i>
+                <span>Breach Intelligence</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'email_forensics:social_discovery' %}" class="{% if 'social' in request.path %}active{% endif %}">
+                <i class="fas fa-users"></i>
+                <span>Social Discovery</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'email_forensics:analysis_history' %}" class="{% if 'history' in request.path %}active{% endif %}">
+                <i class="fas fa-list"></i>
+                <span>Analysis History</span>
+            </a>
+        </li>
+    </ul>
 </div>
 
-<script src="{% static 'js/main.js' %}"></script>
-
-{% block extra_js %}
-{% endblock %}
-
+                <!-- Tools Section -->
+                <div class="nav-section">
+                    <span class="nav-section-label">Tools</span>
+                    <ul>
+                        <li>
+                            <a href="{% url 'core_settings:api_services' %}" class="{% if 'api-services' in request.path %}active{% endif %}">
+                                <i class="fas fa-key"></i>
+                                <span>API Settings</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'core_settings:audit_log' %}" class="{% if 'audit-log' in request.path %}active{% endif %}">
+                                <i class="fas fa-clipboard-list"></i>
+                                <span>Audit Log</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-card">
+                    <div class="user-card-avatar">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder">{{ user.username|first|upper }}</div>
+                        {% endif %}
+                        <span class="status-dot online"></span>
+                    </div>
+                    <div class="user-card-info">
+                        <span class="user-card-name">{{ user.get_full_name|default:user.username }}</span>
+                        <span class="user-card-role">{% if user.is_staff %}Administrator{% else %}Analyst{% endif %}</span>
+                    </div>
+                </div>
+                <form method="post" action="{% url 'accounts:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="toggle-sidebar" id="toggleSidebar" aria-label="Toggle Sidebar">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-title">
+                        <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                        <p class="subtitle">{% block page_subtitle %}{% endblock %}</p>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="header-action-btn" aria-label="Search">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <div class="notifications" aria-label="Notifications">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">3</span>
+                        </div>
+                    </div>
+                    
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-info">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Profile" class="avatar">
+                            {% else %}
+                                <div class="avatar-placeholder">{{ user.username|first|upper }}</div>
+                            {% endif %}
+                            <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <div class="dropdown-header">
+                                <div class="name">{{ user.get_full_name|default:user.username }}</div>
+                                <div class="email">{{ user.email }}</div>
+                            </div>
+                            <hr>
+                            <a href="{% url 'accounts:profile' %}">
+                                <i class="fas fa-user"></i> My Profile
+                            </a>
+                            <a href="{% url 'accounts:profile_edit' %}">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </a>
+                            <a href="{% url 'accounts:change_password' %}">
+                                <i class="fas fa-key"></i> Change Password
+                            </a>
+                            <a href="{% url 'core_settings:api_services' %}">
+                                <i class="fas fa-cog"></i> API Settings
+                            </a>
+                            <hr>
+                            <form method="post" action="{% url 'accounts:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="logout-item">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Messages -->
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                            {{ message }}
+                            <button class="close-alert" aria-label="Close alert">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Content -->
+            <div class="content {% if not messages %}no-messages{% endif %}">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

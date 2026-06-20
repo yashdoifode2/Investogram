@@ -7,7 +7,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
     path('intelligence/', include('intelligence.urls')),
-    path('settings/', include('core_settings.urls')),  # Add this
+    path('settings/', include('core_settings.urls')),
+    path('forensics/', include('email_forensics.urls')),  # Added
 ]
 
 if settings.DEBUG:

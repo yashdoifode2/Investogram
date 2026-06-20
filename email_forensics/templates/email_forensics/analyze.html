@@ -1,0 +1,289 @@
+{% extends 'email_forensics/base_forensics.html' %}
+{% load static %}
+
+{% block forensics_content %}
+<div class="analyze-container">
+    <div class="analyze-header">
+        <div class="analyze-title">
+            <i class="fas fa-envelope-open-text"></i>
+            <div>
+                <h2>Analyze Email</h2>
+                <p>Upload an email file or paste email headers for forensic analysis</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="analyze-grid">
+        <!-- Upload Section -->
+        <div class="analyze-card">
+            <div class="card-header">
+                <h5><i class="fas fa-upload"></i> Upload Email File</h5>
+                <span class="card-badge">.eml, .msg</span>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h4>Drop your email file here</h4>
+                        <p class="text-muted">or click to browse</p>
+                        {{ upload_form.file }}
+                        <span class="upload-help">Supported formats: .eml, .msg</span>
+                    </div>
+                    <button type="submit" name="upload_file" class="btn-intel w-100 mt-3">
+                        <i class="fas fa-upload"></i> Upload & Analyze
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Paste Section -->
+        <div class="analyze-card">
+            <div class="card-header">
+                <h5><i class="fas fa-paste"></i> Paste Email Headers</h5>
+                <span class="card-badge">Full Email</span>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="{{ paste_form.email_content.id_for_label }}">Email Content</label>
+                        {{ paste_form.email_content }}
+                        <span class="help-text">Paste the complete email with headers</span>
+                    </div>
+                    <button type="submit" name="paste_content" class="btn-intel w-100">
+                        <i class="fas fa-search"></i> Analyze Pasted Email
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.analyze-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.analyze-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.analyze-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.analyze-title i {
+    font-size: 2rem;
+    color: var(--accent-primary);
+}
+
+.analyze-title h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.analyze-title p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.analyze-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.analyze-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.analyze-card .card-header {
+    padding: 14px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.analyze-card .card-header h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.analyze-card .card-header h5 i {
+    color: var(--accent-primary);
+    margin-right: 8px;
+}
+
+.analyze-card .card-header .card-badge {
+    font-size: 0.7rem;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: var(--accent-glow);
+    color: var(--accent-primary);
+}
+
+.analyze-card .card-body {
+    padding: 20px;
+}
+
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 40px 20px;
+    text-align: center;
+    transition: var(--transition);
+    cursor: pointer;
+    position: relative;
+}
+
+.upload-area:hover {
+    border-color: var(--accent-primary);
+    background: var(--accent-glow);
+}
+
+.upload-area .upload-icon {
+    font-size: 3rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.upload-area h4 {
+    color: var(--text-primary);
+    margin: 0 0 4px;
+}
+
+.upload-area .text-muted {
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.upload-area input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.upload-area .upload-help {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 8px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+.form-group textarea {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 12px 14px;
+    width: 100%;
+    min-height: 200px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    transition: var(--transition);
+    resize: vertical;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.form-group .help-text {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 4px;
+    display: block;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.btn-intel {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    font-size: 0.95rem;
+    text-decoration: none;
+    justify-content: center;
+}
+
+.btn-intel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--accent-glow);
+    color: #fff;
+    text-decoration: none;
+}
+
+@media (max-width: 992px) {
+    .analyze-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .analyze-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .upload-area {
+        padding: 24px 16px;
+    }
+}
+</style>
+{% endblock %}
