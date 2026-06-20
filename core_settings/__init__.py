@@ -1,0 +1,1 @@
+default_app_config = 'core_settings.apps.CoreSettingsConfig'

@@ -1,0 +1,492 @@
+{% extends 'intelligence/base_intelligence.html' %}
+{% load static %}
+{% load intelligence_filters %}
+
+{% block intelligence_content %}
+<div class="detail-container">
+    <div class="detail-header">
+        <div class="detail-title">
+            <i class="fas fa-file-invoice"></i>
+            <div>
+                <h2>Investigation Details</h2>
+                <p>Detailed view of intelligence investigation results</p>
+            </div>
+        </div>
+        <div class="detail-actions">
+            <a href="{% url 'intelligence:search_history' %}" class="btn-intel-outline">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <a href="{% url 'intelligence:generate_report' search.id %}" class="btn-intel">
+                <i class="fas fa-file-pdf"></i> Generate Report
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-content">
+        <!-- Metadata Card -->
+        <div class="detail-card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Investigation Metadata</h5>
+                {% if source %}
+                <span class="source-badge {% if is_fallback %}fallback{% else %}premium{% endif %}">
+                    <i class="fas fa-{% if is_fallback %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+                    {{ source }}
+                </span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="metadata-grid">
+                    <div class="metadata-item">
+                        <span class="metadata-label">Search Type</span>
+                        <span class="metadata-value">
+                            <span class="type-badge {{ search.search_type|lower }}">
+                                <i class="fas fa-{% if search.search_type == 'IP' %}network-wired{% elif search.search_type == 'EMAIL' %}envelope{% elif search.search_type == 'PHONE' %}phone{% elif search.search_type == 'URL' %}link{% elif search.search_type == 'BREACH' %}database{% endif %}"></i>
+                                {{ search.get_search_type_display }}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Query</span>
+                        <span class="metadata-value highlight">{{ search.query }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Risk Level</span>
+                        <span class="metadata-value">
+                            <span class="risk-badge {% if search.risk_level == 'High' or search.risk_level == 'Critical' %}critical{% elif search.risk_level == 'Medium' %}medium{% else %}low{% endif %}">
+                                <span class="risk-dot"></span>
+                                {{ search.risk_level|default:"Unknown" }}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Risk Score</span>
+                        <span class="metadata-value">{{ search.risk_score|default:"N/A" }}/10</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Timestamp</span>
+                        <span class="metadata-value">{{ search.timestamp|date:"Y-m-d H:i:s" }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">High Risk</span>
+                        <span class="metadata-value">
+                            {% if search.is_high_risk %}
+                            <span class="text-danger">⚠️ Yes</span>
+                            {% else %}
+                            <span class="text-success">✅ No</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% if search.ip_address %}
+                    <div class="metadata-item">
+                        <span class="metadata-label">IP Address</span>
+                        <span class="metadata-value highlight">{{ search.ip_address }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="metadata-item">
+                        <span class="metadata-label">Data Source</span>
+                        <span class="metadata-value">
+                            {% if source %}
+                                {{ source }}
+                                {% if is_fallback %}
+                                <span class="badge bg-warning ms-1">Fallback</span>
+                                {% endif %}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="detail-card">
+            <div class="card-header">
+                <h5><i class="fas fa-file-alt"></i> Intelligence Results</h5>
+                <span class="result-count">{{ search.results|length }} fields</span>
+            </div>
+            <div class="card-body">
+                {% if search.results %}
+                    <div class="results-view">
+                        {% for section, data in search.results.items %}
+                            {% if section != 'raw_data' and section != 'source' and section != 'is_fallback' and data %}
+                            <div class="result-section-detail">
+                                <h6 class="section-title">{{ section|title|replace_underscore }}</h6>
+                                <div class="section-content">
+                                    {% if data.items %}
+                                        {% for key, value in data.items %}
+                                        <div class="result-row">
+                                            <span class="result-key">{{ key|title|replace_underscore }}</span>
+                                            <span class="result-value">
+                                                {% if value is None %}
+                                                    <span class="text-muted">N/A</span>
+                                                {% elif value is True %}
+                                                    <span class="text-success">Yes</span>
+                                                {% elif value is False %}
+                                                    <span class="text-danger">No</span>
+                                                {% elif value|length > 50 %}
+                                                    {{ value|truncatechars:50 }}
+                                                {% else %}
+                                                    {{ value }}
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="result-row">
+                                            <span class="result-key">Data</span>
+                                            <span class="result-value">{{ data }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if search.results.raw_data %}
+                        <div class="result-section-detail">
+                            <h6 class="section-title">Raw Data</h6>
+                            <div class="section-content">
+                                <pre class="raw-data">{{ search.results.raw_data|pprint }}</pre>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-file-alt"></i>
+                        <h4>No Results Found</h4>
+                        <p>This investigation has no associated results data.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="detail-actions-bottom">
+            <a href="{% url 'intelligence:generate_report' search.id %}" class="btn-intel">
+                <i class="fas fa-file-pdf"></i> Generate Full Report
+            </a>
+            <button onclick="window.print()" class="btn-intel-outline">
+                <i class="fas fa-print"></i> Print This Page
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Replace underscores with spaces in labels
+    document.querySelectorAll('.result-key').forEach(function(el) {
+        if (el.textContent) {
+            el.textContent = el.textContent.replace(/_/g, ' ');
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 20px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.detail-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.detail-title i {
+    font-size: 2rem;
+    color: var(--accent-primary);
+}
+
+.detail-title h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.detail-title p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.source-badge.premium {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+}
+
+.source-badge.fallback {
+    background: rgba(255, 165, 2, 0.15);
+    color: #ffa502;
+}
+
+.detail-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.detail-card .card-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.detail-card .card-header h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.detail-card .card-header h5 i {
+    color: var(--accent-primary);
+    margin-right: 8px;
+}
+
+.detail-card .card-header .result-count {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.detail-card .card-body {
+    padding: 20px;
+}
+
+.metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.metadata-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.metadata-label {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metadata-value {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.metadata-value.highlight {
+    color: var(--accent-primary);
+}
+
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.type-badge.ip {
+    background: rgba(0, 212, 255, 0.15);
+    color: var(--accent-primary);
+}
+
+.type-badge.email {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+}
+
+.type-badge.phone {
+    background: rgba(255, 165, 2, 0.15);
+    color: #ffa502;
+}
+
+.type-badge.url {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.type-badge.breach {
+    background: rgba(255, 0, 0, 0.15);
+    color: #ff0000;
+}
+
+.results-view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.result-section-detail {
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.result-section-detail .section-title {
+    color: var(--text-primary);
+    padding: 10px 16px;
+    margin: 0;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.section-content {
+    padding: 12px 16px;
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.result-row:last-child {
+    border-bottom: none;
+}
+
+.result-key {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.result-value {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.85rem;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-word;
+}
+
+.raw-data {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-family: 'Courier New', monospace;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 0;
+}
+
+.detail-actions-bottom {
+    display: flex;
+    gap: 12px;
+    padding: 16px 0;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .detail-actions {
+        width: 100%;
+    }
+    
+    .detail-actions .btn-intel,
+    .detail-actions .btn-intel-outline {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .detail-card .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .metadata-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .result-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 8px 0;
+    }
+    
+    .result-value {
+        text-align: left;
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .detail-actions-bottom {
+        flex-direction: column;
+    }
+    
+    .detail-actions-bottom .btn-intel,
+    .detail-actions-bottom .btn-intel-outline {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

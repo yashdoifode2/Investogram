@@ -1,0 +1,273 @@
+{% extends 'core_settings/base_settings.html' %}
+{% load static %}
+
+{% block settings_title %}{{ action }}{% endblock %}
+{% block settings_subtitle %}Configure API service settings{% endblock %}
+
+{% block settings_actions %}
+<a href="{% url 'core_settings:api_services' %}" class="btn-intel-outline">
+    <i class="fas fa-arrow-left"></i> Back
+</a>
+{% endblock %}
+
+{% block settings_content %}
+<div class="form-container">
+    <div class="form-card">
+        <form method="post" class="service-form">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">Service Name</label>
+                    {{ form.name }}
+                    <span class="help-text">A descriptive name for this API service</span>
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.service_type.id_for_label }}">Service Type</label>
+                    {{ form.service_type }}
+                    <span class="help-text">Select the API provider type</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.api_key.id_for_label }}">API Key</label>
+                {{ form.api_key }}
+                <span class="help-text">Enter your API key. This will be encrypted before storage.</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.base_url.id_for_label }}">Base URL (Optional)</label>
+                {{ form.base_url }}
+                <span class="help-text">Leave blank to use the default endpoint for this service</span>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.rate_limit.id_for_label }}">Rate Limit</label>
+                    {{ form.rate_limit }}
+                    <span class="help-text">Maximum number of requests per period</span>
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.rate_limit_period.id_for_label }}">Rate Limit Period</label>
+                    {{ form.rate_limit_period }}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.timeout.id_for_label }}">Timeout (seconds)</label>
+                    {{ form.timeout }}
+                    <span class="help-text">Request timeout in seconds</span>
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.max_retries.id_for_label }}">Max Retries</label>
+                    {{ form.max_retries }}
+                    <span class="help-text">Number of retry attempts on failure</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.extra_config.id_for_label }}">Extra Configuration (JSON)</label>
+                {{ form.extra_config }}
+                <span class="help-text">Additional configuration in JSON format</span>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-check">
+                    {{ form.is_enabled }}
+                    <label for="{{ form.is_enabled.id_for_label }}" class="form-check-label">
+                        Enable this API service
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-intel">
+                    <i class="fas fa-save"></i> Save Service
+                </button>
+                <a href="{% url 'core_settings:api_services' %}" class="btn-intel-outline">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="form-sidebar">
+        <div class="info-card">
+            <h6><i class="fas fa-info-circle"></i> Security Note</h6>
+            <p>API keys are encrypted before being stored in the database using Fernet symmetric encryption.</p>
+        </div>
+        
+        <div class="info-card">
+            <h6><i class="fas fa-shield-alt"></i> Best Practices</h6>
+            <ul>
+                <li>Use unique API keys for each service</li>
+                <li>Set appropriate rate limits</li>
+                <li>Test connections after configuration</li>
+                <li>Review usage logs regularly</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.form-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+}
+
+.service-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-group label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.form-group .form-control,
+.form-group .form-select {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 10px 14px;
+    width: 100%;
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.form-group .form-control:focus,
+.form-group .form-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.form-group .form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.form-group .help-text {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.form-group .form-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+.form-group .form-check-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--accent-primary);
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+}
+
+.info-card h6 {
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+    font-size: 0.9rem;
+}
+
+.info-card h6 i {
+    color: var(--accent-primary);
+    margin-right: 8px;
+}
+
+.info-card p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.info-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-card ul li {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-card ul li::before {
+    content: "•";
+    color: var(--accent-primary);
+}
+
+@media (max-width: 992px) {
+    .form-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn-intel,
+    .form-actions .btn-intel-outline {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .form-card {
+        padding: 16px;
+    }
+}
+</style>
+{% endblock %}

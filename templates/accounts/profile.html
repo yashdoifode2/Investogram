@@ -1,0 +1,506 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block page_subtitle %}View and manage your personal information{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-card">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                {% else %}
+                    <div class="avatar-large">{{ user.username|first|upper }}</div>
+                {% endif %}
+                <div class="avatar-status online"></div>
+            </div>
+            <div class="profile-name">
+                <h2>{{ user.get_full_name|default:user.username }}</h2>
+                <p class="email">{{ user.email }}</p>
+                <div class="profile-meta">
+                    <span class="meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        Member since {{ user.created_at|date:"F d, Y" }}
+                    </span>
+                    {% if user.last_login %}
+                        <span class="meta-item">
+                            <i class="fas fa-clock"></i>
+                            Last active {{ user.last_login|timesince }} ago
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="profile-actions">
+                <a href="{% url 'accounts:profile_edit' %}" class="btn-edit">
+                    <i class="fas fa-pen"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+        
+        <!-- Profile Body -->
+        <div class="profile-body">
+            <!-- Stats Row -->
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <span class="stat-number">14</span>
+                    <span class="stat-label">Projects</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number">28</span>
+                    <span class="stat-label">Tasks</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number">5</span>
+                    <span class="stat-label">Teams</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-number">92%</span>
+                    <span class="stat-label">Completion</span>
+                </div>
+            </div>
+            
+            <!-- Info Grid -->
+            <div class="info-grid">
+                <div class="info-item">
+                    <i class="fas fa-user"></i>
+                    <div>
+                        <span class="label">Username</span>
+                        <p class="value">{{ user.username }}</p>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <span class="label">Email Address</span>
+                        <p class="value">{{ user.email }}</p>
+                    </div>
+                </div>
+                
+                {% if user.first_name or user.last_name %}
+                <div class="info-item">
+                    <i class="fas fa-id-card"></i>
+                    <div>
+                        <span class="label">Full Name</span>
+                        <p class="value">{{ user.get_full_name|default:"Not set" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if user.location %}
+                <div class="info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <span class="label">Location</span>
+                        <p class="value">{{ user.location }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if user.phone_number %}
+                <div class="info-item">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <span class="label">Phone Number</span>
+                        <p class="value">{{ user.phone_number }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if user.website %}
+                <div class="info-item">
+                    <i class="fas fa-globe"></i>
+                    <div>
+                        <span class="label">Website</span>
+                        <p class="value">
+                            <a href="{{ user.website }}" target="_blank" rel="noopener noreferrer">
+                                {{ user.website|truncatechars:30 }}
+                                <i class="fas fa-external-link-alt" style="font-size:0.7rem; margin-left:4px;"></i>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if user.birth_date %}
+                <div class="info-item">
+                    <i class="fas fa-birthday-cake"></i>
+                    <div>
+                        <span class="label">Birth Date</span>
+                        <p class="value">{{ user.birth_date|date:"F d, Y" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Bio Section -->
+            {% if user.bio %}
+            <div class="bio-section">
+                <h3><i class="fas fa-quote-left"></i> About Me</h3>
+                <p>{{ user.bio|linebreaks }}</p>
+            </div>
+            {% endif %}
+            
+            <!-- Quick Actions -->
+            <div class="profile-actions-bottom">
+                <a href="{% url 'accounts:profile_edit' %}" class="action-link primary">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </a>
+                <a href="{% url 'accounts:change_password' %}" class="action-link secondary">
+                    <i class="fas fa-key"></i> Change Password
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .profile-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+    
+    .profile-header {
+        padding: 32px 36px;
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        flex-wrap: wrap;
+    }
+    
+    .profile-avatar {
+        position: relative;
+        flex-shrink: 0;
+    }
+    
+    .profile-avatar img,
+    .avatar-large {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--accent-primary);
+    }
+    
+    .avatar-large {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: #fff;
+        font-weight: 600;
+    }
+    
+    .avatar-status {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 3px solid var(--bg-secondary);
+    }
+    
+    .avatar-status.online {
+        background: #00d4aa;
+    }
+    
+    .profile-name {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .profile-name h2 {
+        color: var(--text-primary);
+        margin: 0 0 4px;
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+    
+    .profile-name .email {
+        color: var(--text-secondary);
+        margin: 0 0 8px;
+        font-size: 0.95rem;
+    }
+    
+    .profile-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .meta-item {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .meta-item i {
+        color: var(--accent-primary);
+        font-size: 0.8rem;
+    }
+    
+    .profile-actions {
+        flex-shrink: 0;
+    }
+    
+    .btn-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: #fff;
+        text-decoration: none;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        transition: var(--transition);
+        font-size: 0.9rem;
+    }
+    
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px var(--accent-glow);
+    }
+    
+    .profile-body {
+        padding: 32px 36px;
+    }
+    
+    .profile-stats {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        padding: 20px;
+        background: var(--bg-input);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        margin-bottom: 28px;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-number {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+    
+    .stat-divider {
+        width: 1px;
+        height: 30px;
+        background: var(--border-color);
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 14px 16px;
+        background: var(--bg-input);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        transition: var(--transition);
+    }
+    
+    .info-item:hover {
+        border-color: var(--border-hover);
+        background: var(--bg-card-hover);
+    }
+    
+    .info-item i {
+        color: var(--accent-primary);
+        font-size: 1.1rem;
+        margin-top: 2px;
+        width: 20px;
+        flex-shrink: 0;
+    }
+    
+    .info-item .label {
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 2px;
+    }
+    
+    .info-item .value {
+        color: var(--text-primary);
+        margin: 0;
+        word-break: break-word;
+    }
+    
+    .info-item .value a {
+        color: var(--accent-primary);
+        text-decoration: none;
+        transition: var(--transition);
+    }
+    
+    .info-item .value a:hover {
+        text-decoration: underline;
+    }
+    
+    .bio-section {
+        padding: 20px 24px;
+        background: var(--bg-input);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        margin-bottom: 28px;
+    }
+    
+    .bio-section h3 {
+        color: var(--text-primary);
+        margin: 0 0 10px;
+        font-size: 1rem;
+    }
+    
+    .bio-section h3 i {
+        color: var(--accent-primary);
+        margin-right: 10px;
+    }
+    
+    .bio-section p {
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.7;
+    }
+    
+    .profile-actions-bottom {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .action-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: var(--transition);
+    }
+    
+    .action-link.primary {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: #fff;
+    }
+    
+    .action-link.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px var(--accent-glow);
+    }
+    
+    .action-link.secondary {
+        background: var(--bg-input);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+    
+    .action-link.secondary:hover {
+        background: var(--bg-card-hover);
+        color: var(--text-primary);
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .profile-header {
+            padding: 24px;
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .profile-avatar img,
+        .avatar-large {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+        }
+        
+        .profile-meta {
+            justify-content: center;
+        }
+        
+        .profile-actions {
+            width: 100%;
+        }
+        
+        .btn-edit {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .profile-body {
+            padding: 20px 24px;
+        }
+        
+        .profile-stats {
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 16px;
+        }
+        
+        .stat-divider {
+            display: none;
+        }
+        
+        .stat-item {
+            flex: 1;
+            min-width: 60px;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .profile-actions-bottom {
+            flex-direction: column;
+        }
+        
+        .action-link {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}

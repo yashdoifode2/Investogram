@@ -1,0 +1,209 @@
+{% extends 'intelligence/base_intelligence.html' %}
+{% load static %}
+
+{% block intelligence_content %}
+<div class="lookup-container">
+    <div class="lookup-header">
+        <div class="lookup-title">
+            <i class="fas fa-phone"></i>
+            <div>
+                <h2>Phone Intelligence Lookup</h2>
+                <p>Investigate phone numbers for fraud, carrier information, and risk assessment</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="lookup-grid">
+        <!-- Search Form -->
+        <div class="lookup-form-wrapper">
+            <form method="post" class="lookup-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.phone_number.id_for_label }}">Phone Number</label>
+                    {{ form.phone_number }}
+                    <span class="help-text">Enter phone number with country code (e.g., +1234567890)</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.country_code.id_for_label }}">Country Code (Optional)</label>
+                    {{ form.country_code }}
+                    <span class="help-text">2-letter country code (e.g., US, GB, IN)</span>
+                </div>
+                
+                <button type="submit" class="btn-intel">
+                    <i class="fas fa-search"></i> Lookup Phone
+                </button>
+            </form>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="lookup-info">
+            <div class="info-card">
+                <h6><i class="fas fa-info-circle"></i> About Phone Intelligence</h6>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> Phone number validation</li>
+                    <li><i class="fas fa-check-circle"></i> Carrier & country information</li>
+                    <li><i class="fas fa-check-circle"></i> Line type detection</li>
+                    <li><i class="fas fa-check-circle"></i> Fraud score & risk assessment</li>
+                    <li><i class="fas fa-check-circle"></i> Prepaid & mobile detection</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h6><i class="fas fa-shield-alt"></i> Risk Level Guide</h6>
+                <div class="risk-guide">
+                    <span class="risk-badge low"><span class="risk-dot"></span> Low (0-25)</span>
+                    <span class="risk-badge medium"><span class="risk-dot"></span> Medium (26-50)</span>
+                    <span class="risk-badge high"><span class="risk-dot"></span> High (51-75)</span>
+                    <span class="risk-badge critical"><span class="risk-dot"></span> Critical (76-100)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    {% if result %}
+    <div class="results-container">
+        <div class="results-header">
+            <h4><i class="fas fa-file-alt"></i> Investigation Results</h4>
+            <span class="result-timestamp">{{ result.timestamp|date:"Y-m-d H:i:s" }}</span>
+        </div>
+
+        <!-- Risk Summary -->
+        <div class="risk-summary">
+            <div class="risk-score">
+                <span class="score-label">Risk Score</span>
+                <span class="score-value {{ result.risk_level|lower }}">
+                    {{ result.results.risk.risk_score|default:"N/A" }}/10
+                </span>
+            </div>
+            <div class="risk-level">
+                <span class="level-label">Risk Level</span>
+                <span class="risk-badge {% if result.risk_level == 'High' or result.risk_level == 'Critical' %}critical{% elif result.risk_level == 'Medium' %}medium{% else %}low{% endif %}">
+                    <span class="risk-dot"></span>
+                    {{ result.risk_level|default:"Unknown" }}
+                </span>
+            </div>
+            <div class="risk-level">
+                <span class="level-label">Valid</span>
+                <span class="risk-badge {% if result.results.basic.valid %}low{% else %}critical{% endif %}">
+                    <span class="risk-dot"></span>
+                    {% if result.results.basic.valid %}✅ Valid{% else %}❌ Invalid{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Results Grid -->
+        <div class="results-grid">
+            <!-- Basic Information -->
+            <div class="result-section">
+                <h5><i class="fas fa-info-circle"></i> Basic Information</h5>
+                <div class="result-items">
+                    <div class="result-item">
+                        <span class="label">Country</span>
+                        <span class="value">{{ result.results.basic.country|default:"N/A" }}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Country Code</span>
+                        <span class="value">{{ result.results.basic.country_code|default:"N/A" }}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Carrier</span>
+                        <span class="value">{{ result.results.basic.carrier|default:"N/A" }}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Number Type</span>
+                        <span class="value">{{ result.results.basic.number_type|default:"N/A" }}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Local Format</span>
+                        <span class="value">{{ result.results.basic.local_format|default:"N/A" }}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">International Format</span>
+                        <span class="value highlight">{{ result.results.basic.international_format|default:"N/A" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Assessment -->
+            <div class="result-section">
+                <h5><i class="fas fa-shield-alt"></i> Risk Assessment</h5>
+                <div class="result-items">
+                    <div class="result-item">
+                        <span class="label">Fraud Score</span>
+                        <span class="value">{{ result.results.risk.fraud_score|default:"N/A" }}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Prepaid</span>
+                        <span class="value {% if result.results.risk.prepaid %}warning{% else %}success{% endif %}">
+                            {% if result.results.risk.prepaid %}Yes{% else %}No{% endif %}
+                        </span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Mobile</span>
+                        <span class="value">{{ result.results.risk.mobile|yesno:"Yes,No" }}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Active</span>
+                        <span class="value {% if result.results.risk.active %}success{% else %}danger{% endif %}">
+                            {% if result.results.risk.active %}✅ Active{% else %}❌ Inactive{% endif %}
+                        </span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Recent Abuse</span>
+                        <span class="value {% if result.results.additional.recent_abuse %}danger{% else %}success{% endif %}">
+                            {% if result.results.additional.recent_abuse %}⚠️ Detected{% else %}Clean{% endif %}
+                        </span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Risky</span>
+                        <span class="value {% if result.results.additional.is_risky %}danger{% else %}success{% endif %}">
+                            {% if result.results.additional.is_risky %}⚠️ Yes{% else %}No{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="result-section full">
+                <h5><i class="fas fa-chart-bar"></i> Summary</h5>
+                <div class="security-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+                    <div class="security-item">
+                        <span class="security-label">Valid</span>
+                        <span class="security-value {% if result.results.basic.valid %}success{% else %}danger{% endif %}">
+                            {% if result.results.basic.valid %}✅ Yes{% else %}❌ No{% endif %}
+                        </span>
+                    </div>
+                    <div class="security-item">
+                        <span class="security-label">Carrier</span>
+                        <span class="security-value">{{ result.results.basic.carrier|default:"Unknown" }}</span>
+                    </div>
+                    <div class="security-item">
+                        <span class="security-label">Type</span>
+                        <span class="security-value">{{ result.results.basic.number_type|default:"Unknown" }}</span>
+                    </div>
+                    <div class="security-item">
+                        <span class="security-label">Fraud Score</span>
+                        <span class="security-value {% if result.results.risk.fraud_score > 50 %}danger{% elif result.results.risk.fraud_score > 25 %}warning{% else %}success{% endif %}">
+                            {{ result.results.risk.fraud_score|default:"N/A" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="results-actions">
+            <button onclick="window.print()" class="btn-intel-outline">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+            <a href="{% url 'intelligence:generate_report' result.id %}" class="btn-intel">
+                <i class="fas fa-file-pdf"></i> Generate Report
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

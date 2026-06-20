@@ -1,0 +1,652 @@
+{% extends 'core_settings/base_settings.html' %}
+{% load static %}
+
+{% block settings_title %}API Services{% endblock %}
+{% block settings_subtitle %}Configure and manage your API integrations{% endblock %}
+
+{% block settings_actions %}
+<a href="{% url 'core_settings:api_service_create' %}" class="btn-intel">
+    <i class="fas fa-plus"></i> Add Service
+</a>
+{% endblock %}
+
+{% block settings_content %}
+<!-- API Status Overview -->
+<div class="api-status-overview">
+    <div class="status-header">
+        <h5><i class="fas fa-shield-alt"></i> API Connection Status</h5>
+    </div>
+    <div class="status-body">
+        <div class="status-indicator">
+            {% if api_status.is_verified %}
+                <span class="status-dot-large active">
+                    <i class="fas fa-check-circle"></i>
+                </span>
+            {% elif api_status.has_key %}
+                <span class="status-dot-large warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </span>
+            {% else %}
+                <span class="status-dot-large inactive">
+                    <i class="fas fa-times-circle"></i>
+                </span>
+            {% endif %}
+            <div class="status-info">
+                <span class="status-title">
+                    {% if api_status.is_verified %}
+                        <span style="color: #00d4aa;">✅ API Connected</span>
+                    {% elif api_status.has_key %}
+                        <span style="color: #ffa502;">⚠️ API Not Verified</span>
+                    {% else %}
+                        <span style="color: #ff4757;">❌ No API Key Configured</span>
+                    {% endif %}
+                </span>
+                <span class="status-detail">
+                    {% if api_status.has_key %}
+                        Service: <strong>{{ api_status.service_name }}</strong>
+                        {% if api_status.is_verified %}
+                            <span class="badge-verified">✓ Verified</span>
+                            {% if api_status.last_verified %}
+                                <br><small>Last verified: {{ api_status.last_verified|date:"Y-m-d H:i:s" }}</small>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge-warning">⚠️ Not Verified</span>
+                            <br><small>{{ api_status.message }}</small>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">{{ api_status.message }}</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% if not api_status.is_verified and api_status.has_key %}
+        <div class="status-actions">
+            <form method="post" action="{% url 'core_settings:api_service_test' services.0.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-intel" style="padding: 8px 20px; font-size: 0.85rem;">
+                    <i class="fas fa-vial"></i> Test Connection
+                </button>
+            </form>
+        </div>
+        {% elif not api_status.has_key %}
+        <div class="status-actions">
+            <a href="{% url 'core_settings:api_service_create' %}" class="btn-intel" style="padding: 8px 20px; font-size: 0.85rem;">
+                <i class="fas fa-plus"></i> Add API Key
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-overview">
+    <div class="stat-box">
+        <span class="stat-number">{{ services|length }}</span>
+        <span class="stat-label">Total Services</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-number">{{ services|length }}</span>
+        <span class="stat-label">Active Services</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-number">
+            {% if api_status.is_verified %}
+                <i class="fas fa-check-circle" style="color: #00d4aa; font-size: 1.5rem;"></i>
+            {% elif api_status.has_key %}
+                <i class="fas fa-exclamation-triangle" style="color: #ffa502; font-size: 1.5rem;"></i>
+            {% else %}
+                <i class="fas fa-times-circle" style="color: #ff4757; font-size: 1.5rem;"></i>
+            {% endif %}
+        </span>
+        <span class="stat-label">API Status</span>
+    </div>
+</div>
+
+<!-- Services Grid -->
+<div class="services-grid">
+    {% if services %}
+        {% for service in services %}
+        <div class="service-card">
+            <div class="service-card-header">
+                <div class="service-icon {{ service.service_type|lower }}">
+                    <i class="fas fa-{% if service.service_type == 'IPQS' %}shield-alt{% elif service.service_type == 'VT' %}bug{% elif service.service_type == 'SHODAN' %}search{% elif service.service_type == 'ABUSEIPDB' %}ban{% elif service.service_type == 'GREYNOISE' %}eye{% else %}plug{% endif %}"></i>
+                </div>
+                <div class="service-card-info">
+                    <h5>{{ service.name }}</h5>
+                    <span class="service-type">{{ service.get_service_type_display }}</span>
+                </div>
+                <div class="service-card-status">
+                    <span class="status-badge {% if service.is_enabled %}enabled{% else %}disabled{% endif %}">
+                        {% if service.is_enabled %}Active{% else %}Inactive{% endif %}
+                    </span>
+                    {% if service.is_verified %}
+                    <span class="verified-badge"><i class="fas fa-check-circle"></i> Verified</span>
+                    {% else %}
+                    <span class="unverified-badge"><i class="fas fa-exclamation-triangle"></i> Not Verified</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="service-card-body">
+                <div class="service-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Requests</span>
+                        <span class="stat-value">{{ service.usage_count|default:0 }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Errors</span>
+                        <span class="stat-value {% if service.error_count > 0 %}text-danger{% else %}text-success{% endif %}">
+                            {{ service.error_count|default:0 }}
+                        </span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Avg Response</span>
+                        <span class="stat-value">{{ service.avg_response|floatformat:2 }}s</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Rate Limit</span>
+                        <span class="stat-value">{{ service.rate_limit }}/{{ service.get_rate_limit_period_display }}</span>
+                    </div>
+                </div>
+                
+                <div class="service-actions">
+                    <form method="post" action="{% url 'core_settings:api_service_toggle' service.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn {% if service.is_enabled %}disable{% else %}enable{% endif %}" 
+                                title="{% if service.is_enabled %}Disable{% else %}Enable{% endif %}">
+                            <i class="fas fa-{% if service.is_enabled %}pause{% else %}play{% endif %}"></i>
+                            <span>{% if service.is_enabled %}Disable{% else %}Enable{% endif %}</span>
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'core_settings:api_service_test' service.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn test" title="Test Connection">
+                            <i class="fas fa-vial"></i> Test
+                        </button>
+                    </form>
+                    <a href="{% url 'core_settings:api_service_edit' service.id %}" class="action-btn edit" title="Edit">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'core_settings:api_service_delete' service.id %}" class="action-btn delete" title="Delete">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+            
+            {% if service.last_verified %}
+            <div class="service-card-footer">
+                <span><i class="fas fa-clock"></i> Last verified: {{ service.last_verified|date:"Y-m-d H:i" }}</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-plug"></i>
+            <h4>No API Services Configured</h4>
+            <p>Add your first API service to start integrating with third-party providers.</p>
+            <a href="{% url 'core_settings:api_service_create' %}" class="btn-intel" style="margin-top: 16px;">
+                <i class="fas fa-plus"></i> Add Service
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* API Status Overview */
+.api-status-overview {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.api-status-overview .status-header {
+    padding: 14px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.api-status-overview .status-header h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.api-status-overview .status-header h5 i {
+    color: var(--accent-primary);
+    margin-right: 8px;
+}
+
+.api-status-overview .status-body {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+
+.status-dot-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.status-dot-large.active {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+    border: 2px solid #00d4aa;
+}
+
+.status-dot-large.warning {
+    background: rgba(255, 165, 2, 0.15);
+    color: #ffa502;
+    border: 2px solid #ffa502;
+}
+
+.status-dot-large.inactive {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+    border: 2px solid #ff4757;
+}
+
+.status-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.status-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.status-detail {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.badge-verified {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.badge-warning {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: rgba(255, 165, 2, 0.15);
+    color: #ffa502;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.status-actions {
+    flex-shrink: 0;
+}
+
+/* Stats */
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.stat-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.stat-box:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+}
+
+.stat-box .stat-number {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-box .stat-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 2px;
+}
+
+/* Services Grid */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+}
+
+.service-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.service-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.service-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.service-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.service-icon.ipqs {
+    background: rgba(0, 212, 255, 0.15);
+    color: var(--accent-primary);
+}
+
+.service-icon.vt {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.service-icon.shodan {
+    background: rgba(255, 165, 2, 0.15);
+    color: #ffa502;
+}
+
+.service-icon.abuseipdb {
+    background: rgba(255, 0, 0, 0.15);
+    color: #ff0000;
+}
+
+.service-icon.greynoise {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+}
+
+.service-icon.custom {
+    background: rgba(155, 89, 182, 0.15);
+    color: #9b59b6;
+}
+
+.service-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.service-card-info h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.service-type {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.service-card-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.status-badge.enabled {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+}
+
+.status-badge.disabled {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #00d4aa;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.unverified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #ffa502;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.service-card-body {
+    padding: 16px 20px;
+}
+
+.service-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 8px;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+}
+
+.stat-item .stat-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-item .stat-value {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: 2px;
+}
+
+.service-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: var(--transition);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.action-btn:hover {
+    background: var(--bg-card);
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.action-btn.enable {
+    color: #00d4aa;
+}
+
+.action-btn.enable:hover {
+    border-color: #00d4aa;
+    background: rgba(0, 212, 170, 0.1);
+}
+
+.action-btn.disable {
+    color: #ffa502;
+}
+
+.action-btn.disable:hover {
+    border-color: #ffa502;
+    background: rgba(255, 165, 2, 0.1);
+}
+
+.action-btn.test:hover {
+    border-color: var(--accent-primary);
+    background: var(--accent-glow);
+    color: var(--accent-primary);
+}
+
+.action-btn.edit:hover {
+    border-color: #00d4aa;
+    background: rgba(0, 212, 170, 0.1);
+    color: #00d4aa;
+}
+
+.action-btn.delete:hover {
+    border-color: #ff4757;
+    background: rgba(255, 71, 87, 0.1);
+    color: #ff4757;
+}
+
+.service-card-footer {
+    padding: 10px 20px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.empty-state h4 {
+    color: var(--text-primary);
+    margin: 0 0 8px;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .api-status-overview .status-body {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .status-actions {
+        width: 100%;
+    }
+    
+    .status-actions .btn-intel {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .service-card-header {
+        flex-wrap: wrap;
+    }
+    
+    .service-card-status {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .service-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .service-actions {
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        flex: 1;
+        justify-content: center;
+        min-width: 80px;
+    }
+}
+</style>
+{% endblock %}

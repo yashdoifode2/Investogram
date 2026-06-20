@@ -1,0 +1,415 @@
+{% extends 'intelligence/base_intelligence.html' %}
+{% load static %}
+
+{% block intelligence_content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">
+            <i class="fas fa-file-pdf"></i>
+            <div>
+                <h2>Generate Report</h2>
+                <p>Export investigation results in your preferred format</p>
+            </div>
+        </div>
+        <div class="report-actions">
+            <a href="{% url 'intelligence:search_history' %}" class="btn-intel-outline">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="report-grid">
+        <!-- Report Options -->
+        <div class="report-card">
+            <div class="card-header">
+                <h5><i class="fas fa-cog"></i> Report Options</h5>
+            </div>
+            <div class="card-body">
+                <div class="report-info">
+                    <div class="info-row">
+                        <span class="info-label">Investigation Type</span>
+                        <span class="info-value">{{ search.get_search_type_display }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Query</span>
+                        <span class="info-value highlight">{{ search.query }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Risk Level</span>
+                        <span class="info-value">
+                            <span class="risk-badge {% if search.risk_level == 'High' or search.risk_level == 'Critical' %}critical{% elif search.risk_level == 'Medium' %}medium{% else %}low{% endif %}">
+                                <span class="risk-dot"></span>
+                                {{ search.risk_level|default:"Unknown" }}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date</span>
+                        <span class="info-value">{{ search.timestamp|date:"Y-m-d H:i:s" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Data Source</span>
+                        <span class="info-value">
+                            {% if search.results.source %}
+                                {{ search.results.source }}
+                                {% if search.results.is_fallback %}
+                                <span class="badge bg-warning ms-1">Fallback</span>
+                                {% endif %}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <form method="post" class="report-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label>Select Report Format</label>
+                        <div class="format-options">
+                            <div class="format-option">
+                                <input type="radio" name="format" value="PDF" id="format-pdf" checked>
+                                <label for="format-pdf" class="format-label">
+                                    <i class="fas fa-file-pdf" style="color: #ff4757;"></i>
+                                    <span>PDF</span>
+                                    <small>Professional document</small>
+                                </label>
+                            </div>
+                            <div class="format-option">
+                                <input type="radio" name="format" value="CSV" id="format-csv">
+                                <label for="format-csv" class="format-label">
+                                    <i class="fas fa-file-csv" style="color: #00d4aa;"></i>
+                                    <span>CSV</span>
+                                    <small>Data export</small>
+                                </label>
+                            </div>
+                            <div class="format-option">
+                                <input type="radio" name="format" value="JSON" id="format-json">
+                                <label for="format-json" class="format-label">
+                                    <i class="fas fa-file-code" style="color: #ffa502;"></i>
+                                    <span>JSON</span>
+                                    <small>API data</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-intel">
+                            <i class="fas fa-file-export"></i> Generate Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Information Sidebar -->
+        <div class="report-sidebar">
+            <div class="report-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Report Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="info-list">
+                        <li><i class="fas fa-check-circle text-success"></i> Includes all investigation data</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Risk assessment included</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Timestamp and metadata</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Professional formatting</li>
+                        <li><i class="fas fa-check-circle text-success"></i> Source information included</li>
+                    </ul>
+                    
+                    <div class="report-tips">
+                        <h6><i class="fas fa-lightbulb"></i> Tips</h6>
+                        <ul>
+                            <li>PDF is best for sharing and printing</li>
+                            <li>CSV is ideal for data analysis</li>
+                            <li>JSON is perfect for API integration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.report-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 20px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.report-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.report-title i {
+    font-size: 2rem;
+    color: var(--accent-primary);
+}
+
+.report-title h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.report-title p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.report-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.report-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.report-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.report-card .card-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 14px 20px;
+}
+
+.report-card .card-header h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.report-card .card-header h5 i {
+    color: var(--accent-primary);
+    margin-right: 8px;
+}
+
+.report-card .card-body {
+    padding: 20px;
+}
+
+.report-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.info-row .info-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.info-row .info-value {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.info-row .info-value.highlight {
+    color: var(--accent-primary);
+}
+
+.format-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.format-option {
+    position: relative;
+}
+
+.format-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.format-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px;
+    background: var(--bg-input);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+}
+
+.format-label i {
+    font-size: 2rem;
+    margin-bottom: 6px;
+}
+
+.format-label span {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.format-label small {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
+.format-option input[type="radio"]:checked + .format-label {
+    border-color: var(--accent-primary);
+    background: var(--accent-glow);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+}
+
+.format-option input[type="radio"]:checked + .format-label span {
+    color: var(--accent-primary);
+}
+
+.format-label:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-card-hover);
+}
+
+.form-actions {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.report-sidebar .info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px 0;
+}
+
+.report-sidebar .info-list li {
+    color: var(--text-secondary);
+    padding: 6px 0;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.report-sidebar .info-list li i {
+    font-size: 0.8rem;
+}
+
+.report-tips {
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.report-tips h6 {
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+    font-size: 0.85rem;
+}
+
+.report-tips h6 i {
+    color: var(--warning);
+    margin-right: 8px;
+}
+
+.report-tips ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.report-tips ul li {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    padding: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.report-tips ul li::before {
+    content: "•";
+    color: var(--accent-primary);
+}
+
+@media (max-width: 992px) {
+    .report-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .report-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .report-actions {
+        width: 100%;
+    }
+    
+    .report-actions .btn-intel-outline {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .format-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .format-label {
+        flex-direction: row;
+        gap: 12px;
+        padding: 12px 16px;
+    }
+    
+    .format-label i {
+        margin-bottom: 0;
+    }
+    
+    .info-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+</style>
+{% endblock %}

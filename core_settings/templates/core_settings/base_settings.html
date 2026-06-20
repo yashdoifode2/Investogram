@@ -1,0 +1,690 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'intelligence/css/intelligence.css' %}">
+<style>
+/* ========================================
+   SETTINGS DASHBOARD - ENHANCED
+   ======================================== */
+:root {
+    --nav-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --nav-glow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --nav-glow-hover: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.settings-dashboard {
+    padding: 0;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   HEADER - ENHANCED
+   ======================================== */
+.settings-dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 32px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--nav-transition);
+}
+
+.settings-dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary, #8b5cf6));
+    opacity: 0.8;
+}
+
+.settings-dashboard-header:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.settings-dashboard-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.settings-dashboard-header .header-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--accent-glow), rgba(99, 102, 241, 0.1));
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--accent-primary);
+    position: relative;
+    transition: transform var(--nav-transition);
+}
+
+.settings-dashboard-header .header-icon::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--accent-primary), transparent);
+    opacity: 0.1;
+    z-index: -1;
+}
+
+.settings-dashboard-header:hover .header-icon {
+    transform: scale(1.05) rotate(-3deg);
+}
+
+.settings-dashboard-header .header-title h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.settings-dashboard-header .header-title p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+.settings-dashboard-header .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* ========================================
+   NAVIGATION - ENHANCED GLASSMORPHISM
+   ======================================== */
+.settings-nav-wrapper {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 10px;
+    margin-bottom: 28px;
+    overflow-x: auto;
+    box-shadow: var(--nav-glow);
+    position: relative;
+    transition: all var(--nav-transition);
+}
+
+.settings-nav-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    padding: 1px;
+    background: linear-gradient(135deg, var(--border-color), transparent, var(--border-color));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.settings-nav {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+}
+
+/* ========================================
+   NAV ITEMS - ENHANCED
+   ======================================== */
+.settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all var(--nav-transition);
+    white-space: nowrap;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animated glow background */
+.settings-nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    transition: left 0.6s ease;
+    pointer-events: none;
+}
+
+.settings-nav-item:hover::before {
+    left: 100%;
+}
+
+/* Ripple effect */
+.settings-nav-item .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.15);
+    transform: scale(0);
+    animation: rippleAnim 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes rippleAnim {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Icon styling */
+.settings-nav-item .nav-icon {
+    font-size: 1.1rem;
+    transition: all var(--nav-transition);
+    position: relative;
+    z-index: 1;
+    width: 20px;
+    text-align: center;
+}
+
+.settings-nav-item .nav-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.2;
+    position: relative;
+    z-index: 1;
+}
+
+.settings-nav-item .nav-text .nav-title {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: color var(--nav-transition);
+}
+
+.settings-nav-item .nav-text .nav-subtitle {
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 400;
+    transition: color var(--nav-transition);
+    letter-spacing: 0.01em;
+}
+
+/* Badge */
+.settings-nav-item .nav-badge {
+    margin-left: 8px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: #fff;
+    font-size: 0.55rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all var(--nav-transition);
+    position: relative;
+    z-index: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ========================================
+   HOVER STATE - ENHANCED
+   ======================================== */
+.settings-nav-item:hover {
+    background: var(--bg-card);
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--nav-glow-hover);
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.settings-nav-item:hover .nav-icon {
+    transform: scale(1.15) rotate(-5deg);
+}
+
+.settings-nav-item:hover .nav-text .nav-title {
+    color: var(--text-primary);
+}
+
+.settings-nav-item:hover .nav-text .nav-subtitle {
+    color: var(--text-secondary);
+}
+
+.settings-nav-item:hover .nav-badge {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ========================================
+   ACTIVE STATE - ENHANCED PREMIUM
+   ======================================== */
+.settings-nav-item.active {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border-color: var(--accent-primary);
+    box-shadow: 0 4px 24px var(--accent-glow);
+    transform: translateY(-2px);
+    color: #fff;
+}
+
+.settings-nav-item.active .nav-icon {
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.settings-nav-item.active .nav-text .nav-title {
+    color: #fff;
+}
+
+.settings-nav-item.active .nav-text .nav-subtitle {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.settings-nav-item.active .nav-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    opacity: 1;
+    transform: scale(1);
+}
+
+.settings-nav-item.active::before {
+    display: none;
+}
+
+/* Active glow pulse animation */
+.settings-nav-item.active::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    opacity: 0.3;
+    filter: blur(12px);
+    animation: glowPulse 2s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+/* ========================================
+   COLOR VARIANTS - ENHANCED
+   ======================================== */
+.settings-nav-item.blue .nav-icon { color: var(--accent-primary); }
+.settings-nav-item.blue:hover .nav-icon { color: var(--accent-primary); }
+.settings-nav-item.blue.active { 
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border-color: #4f46e5;
+    box-shadow: 0 4px 24px rgba(99, 102, 241, 0.4);
+}
+
+.settings-nav-item.green .nav-icon { color: #10b981; }
+.settings-nav-item.green:hover .nav-icon { color: #10b981; }
+.settings-nav-item.green.active { 
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #059669;
+    box-shadow: 0 4px 24px rgba(16, 185, 129, 0.4);
+}
+
+.settings-nav-item.orange .nav-icon { color: #f59e0b; }
+.settings-nav-item.orange:hover .nav-icon { color: #f59e0b; }
+.settings-nav-item.orange.active { 
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #d97706;
+    box-shadow: 0 4px 24px rgba(245, 158, 11, 0.4);
+}
+
+.settings-nav-item.purple .nav-icon { color: #8b5cf6; }
+.settings-nav-item.purple:hover .nav-icon { color: #8b5cf6; }
+.settings-nav-item.purple.active { 
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    border-color: #7c3aed;
+    box-shadow: 0 4px 24px rgba(139, 92, 246, 0.4);
+}
+
+/* ========================================
+   SCROLL INDICATOR
+   ======================================== */
+.settings-nav-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(90deg, transparent, var(--bg-secondary));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--nav-transition);
+}
+
+.settings-nav-wrapper.is-scrollable::after {
+    opacity: 1;
+}
+
+/* ========================================
+   CONTENT AREA
+   ======================================== */
+.settings-content {
+    animation: fadeInUp 0.5s ease-out 0.1s both;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN - ENHANCED
+   ======================================== */
+@media (max-width: 1024px) {
+    .settings-dashboard-header {
+        padding: 24px 28px;
+    }
+    
+    .settings-nav-item {
+        padding: 10px 18px;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .settings-dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px 24px;
+        gap: 16px;
+    }
+    
+    .settings-dashboard-header .header-left {
+        width: 100%;
+    }
+    
+    .settings-dashboard-header .header-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    
+    .settings-dashboard-header .header-actions .btn-intel,
+    .settings-dashboard-header .header-actions .btn-intel-outline {
+        flex: 1;
+        justify-content: center;
+        min-width: 120px;
+    }
+    
+    .settings-nav-wrapper {
+        padding: 6px;
+        border-radius: var(--radius-md);
+    }
+    
+    .settings-nav {
+        gap: 4px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 4px 2px 8px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-color) transparent;
+    }
+    
+    .settings-nav::-webkit-scrollbar {
+        height: 3px;
+    }
+    
+    .settings-nav::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .settings-nav::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 20px;
+    }
+    
+    .settings-nav-item {
+        padding: 10px 16px;
+        gap: 8px;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+        border-radius: var(--radius-sm);
+    }
+    
+    .settings-nav-item .nav-text .nav-subtitle {
+        display: none;
+    }
+    
+    .settings-nav-item .nav-badge {
+        display: none;
+    }
+    
+    .settings-nav-item .nav-icon {
+        font-size: 0.95rem;
+    }
+    
+    .settings-nav-item.active::after {
+        filter: blur(8px);
+    }
+}
+
+@media (max-width: 480px) {
+    .settings-dashboard-header {
+        padding: 16px 18px;
+        border-radius: var(--radius-md);
+    }
+    
+    .settings-dashboard-header .header-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+    
+    .settings-dashboard-header .header-title h2 {
+        font-size: 1.2rem;
+    }
+    
+    .settings-dashboard-header .header-title p {
+        font-size: 0.8rem;
+    }
+    
+    .settings-nav-item {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+        gap: 6px;
+    }
+    
+    .settings-nav-item .nav-icon {
+        font-size: 0.8rem;
+        width: 16px;
+    }
+    
+    .settings-nav-item .nav-text .nav-title {
+        font-size: 0.75rem;
+    }
+}
+
+/* ========================================
+   DARK MODE ADJUSTMENTS
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+    .settings-nav-wrapper {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .settings-nav-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .settings-dashboard-header::before {
+        opacity: 0.6;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-dashboard">
+    <!-- Enhanced Header -->
+    <div class="settings-dashboard-header">
+        <div class="header-left">
+            <div class="header-icon">
+                <i class="fas fa-sliders-h"></i>
+            </div>
+            <div class="header-title">
+                <h2>{% block settings_title %}Settings{% endblock %}</h2>
+                <p>{% block settings_subtitle %}Manage your application settings{% endblock %}</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            {% block settings_actions %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Enhanced Navigation -->
+    <div class="settings-nav-wrapper" id="settingsNavWrapper">
+        <nav class="settings-nav" id="settingsNav">
+            <!-- API Services -->
+            <a href="{% url 'core_settings:api_services' %}" 
+               class="settings-nav-item blue {% if active_tab == 'api_services' %}active{% endif %}"
+               data-tab="api_services">
+                <i class="fas fa-plug nav-icon"></i>
+                <span class="nav-text">
+                    <span class="nav-title">API Services</span>
+                    <span class="nav-subtitle">Manage integrations</span>
+                </span>
+                <span class="nav-badge">5</span>
+            </a>
+            
+            <!-- Usage Logs -->
+            <a href="{% url 'core_settings:api_usage_logs' %}" 
+               class="settings-nav-item green {% if active_tab == 'api_usage' %}active{% endif %}"
+               data-tab="api_usage">
+                <i class="fas fa-chart-bar nav-icon"></i>
+                <span class="nav-text">
+                    <span class="nav-title">Usage Logs</span>
+                    <span class="nav-subtitle">Monitor API activity</span>
+                </span>
+                <span class="nav-badge">1.2k</span>
+            </a>
+            
+            <!-- Audit Log -->
+            <a href="{% url 'core_settings:audit_log' %}" 
+               class="settings-nav-item orange {% if active_tab == 'audit_log' %}active{% endif %}"
+               data-tab="audit_log">
+                <i class="fas fa-clipboard-list nav-icon"></i>
+                <span class="nav-text">
+                    <span class="nav-title">Audit Log</span>
+                    <span class="nav-subtitle">Track changes</span>
+                </span>
+                <span class="nav-badge">12</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Content -->
+    <div class="settings-content">
+        {% block settings_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ============================================
+    // RIPPLE EFFECT ON NAV ITEMS
+    // ============================================
+    document.querySelectorAll('.settings-nav-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+            ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+
+    // ============================================
+    // SCROLL INDICATOR FOR NAVIGATION
+    // ============================================
+    const navWrapper = document.getElementById('settingsNavWrapper');
+    const nav = document.getElementById('settingsNav');
+    
+    function checkScrollable() {
+        if (nav.scrollWidth > nav.clientWidth) {
+            navWrapper.classList.add('is-scrollable');
+        } else {
+            navWrapper.classList.remove('is-scrollable');
+        }
+    }
+    
+    // Check on load and resize
+    checkScrollable();
+    window.addEventListener('resize', checkScrollable);
+    
+    // ============================================
+    // SMOOTH NAVIGATION
+    // ============================================
+    document.querySelectorAll('.settings-nav-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Remove active from all
+            document.querySelectorAll('.settings-nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            
+            // Add active to clicked (if not already active and not a disabled link)
+            if (!this.classList.contains('disabled')) {
+                this.classList.add('active');
+            }
+            
+            // If the link has a href, let it navigate naturally
+            // The active state will be preserved by the page reload
+        });
+    });
+});
+</script>
+{% endblock %}

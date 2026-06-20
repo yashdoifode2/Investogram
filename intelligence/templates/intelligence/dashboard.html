@@ -1,0 +1,169 @@
+{% extends 'intelligence/base_intelligence.html' %}
+{% load static %}
+
+{% block intelligence_content %}
+<!-- Stats Row -->
+<div class="intel-stats-grid">
+    <div class="intel-stat-card">
+        <div class="stat-icon-wrapper blue">
+            <i class="fas fa-search"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-number">{{ total_searches|default:0 }}</span>
+            <span class="stat-label">Total Searches</span>
+            <span class="stat-trend up">
+                <i class="fas fa-arrow-up"></i> 12.5%
+            </span>
+        </div>
+    </div>
+    
+    <div class="intel-stat-card">
+        <div class="stat-icon-wrapper red">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-number">{{ high_risk_count|default:0 }}</span>
+            <span class="stat-label">High Risk</span>
+            <span class="stat-trend up">
+                <i class="fas fa-arrow-up"></i> 8.2%
+            </span>
+        </div>
+    </div>
+    
+    <div class="intel-stat-card">
+        <div class="stat-icon-wrapper green">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-number">{{ recent_searches|length|default:0 }}</span>
+            <span class="stat-label">Recent Investigations</span>
+            <span class="stat-trend down">
+                <i class="fas fa-arrow-down"></i> 3.1%
+            </span>
+        </div>
+    </div>
+    
+    <div class="intel-stat-card">
+        <div class="stat-icon-wrapper orange">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-number">24</span>
+            <span class="stat-label">Pending Actions</span>
+            <span class="stat-trend down">
+                <i class="fas fa-arrow-down"></i> 2.4%
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions & Activity -->
+<div class="intel-grid-two">
+    <!-- Quick Actions -->
+    <div class="intel-panel">
+        <div class="panel-header">
+            <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+        </div>
+        <div class="panel-body">
+            <div class="quick-actions-grid">
+                <a href="{% url 'intelligence:ip_lookup' %}" class="quick-action">
+                    <i class="fas fa-network-wired"></i>
+                    <span>IP Lookup</span>
+                </a>
+                <a href="{% url 'intelligence:email_lookup' %}" class="quick-action">
+                    <i class="fas fa-envelope"></i>
+                    <span>Email Lookup</span>
+                </a>
+                <a href="{% url 'intelligence:phone_lookup' %}" class="quick-action">
+                    <i class="fas fa-phone"></i>
+                    <span>Phone Lookup</span>
+                </a>
+                <a href="{% url 'intelligence:url_lookup' %}" class="quick-action">
+                    <i class="fas fa-link"></i>
+                    <span>URL Lookup</span>
+                </a>
+                <a href="{% url 'intelligence:breach_lookup' %}" class="quick-action">
+                    <i class="fas fa-database"></i>
+                    <span>Breach Check</span>
+                </a>
+                <a href="{% url 'intelligence:search_history' %}" class="quick-action">
+                    <i class="fas fa-history"></i>
+                    <span>View History</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="intel-panel">
+        <div class="panel-header">
+            <h5><i class="fas fa-activity"></i> Recent Activity</h5>
+            <a href="{% url 'intelligence:search_history' %}" class="panel-link">View All</a>
+        </div>
+        <div class="panel-body">
+            {% if recent_searches %}
+                <div class="activity-list">
+                    {% for search in recent_searches|slice:":5" %}
+                    <div class="activity-item">
+                        <div class="activity-icon {{ search.search_type|lower }}">
+                            {% if search.search_type == 'IP' %}
+                                <i class="fas fa-network-wired"></i>
+                            {% elif search.search_type == 'EMAIL' %}
+                                <i class="fas fa-envelope"></i>
+                            {% elif search.search_type == 'PHONE' %}
+                                <i class="fas fa-phone"></i>
+                            {% elif search.search_type == 'URL' %}
+                                <i class="fas fa-link"></i>
+                            {% elif search.search_type == 'BREACH' %}
+                                <i class="fas fa-database"></i>
+                            {% endif %}
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-query">{{ search.query|truncatechars:30 }}</div>
+                            <div class="activity-meta">
+                                <span class="activity-type">{{ search.get_search_type_display }}</span>
+                                <span class="activity-time">{{ search.timestamp|timesince }} ago</span>
+                            </div>
+                        </div>
+                        <div class="activity-risk">
+                            <span class="risk-badge {% if search.risk_level == 'High' or search.risk_level == 'Critical' %}critical{% elif search.risk_level == 'Medium' %}medium{% else %}low{% endif %}">
+                                <span class="risk-dot"></span>
+                                {{ search.risk_level|default:"Unknown" }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <h4>No Activity Yet</h4>
+                    <p>Start investigating by performing an intelligence lookup</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Most Queried Indicators -->
+{% if most_queried %}
+<div class="intel-panel">
+    <div class="panel-header">
+        <h5><i class="fas fa-chart-bar"></i> Most Queried Indicators</h5>
+    </div>
+    <div class="panel-body">
+        <div class="indicator-list">
+            {% for item in most_queried|slice:":5" %}
+            <div class="indicator-item">
+                <span class="indicator-query">{{ item.query|truncatechars:40 }}</span>
+                <span class="indicator-count">{{ item.count }} searches</span>
+                <div class="indicator-bar">
+                    <div class="indicator-fill" style="width: {% widthratio item.count most_queried.0.count 100 %}%;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

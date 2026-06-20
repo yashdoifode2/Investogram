@@ -1,0 +1,655 @@
+{% extends 'core_settings/base_settings.html' %}
+{% load static %}
+
+{% block settings_title %}API Usage Logs{% endblock %}
+{% block settings_subtitle %}Monitor and analyze your API usage across all services{% endblock %}
+
+{% block settings_actions %}
+<button class="btn-intel-outline" data-bs-toggle="modal" data-bs-target="#clearLogsModal">
+    <i class="fas fa-trash-alt"></i> Clear Old Logs
+</button>
+{% endblock %}
+
+{% block settings_content %}
+<!-- Stats Overview -->
+<div class="usage-stats">
+    <div class="stat-box">
+        <span class="stat-number">{{ total_calls }}</span>
+        <span class="stat-label">Total API Calls</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-number text-danger">{{ error_count }}</span>
+        <span class="stat-label">Errors</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-number">{{ success_rate|floatformat:1 }}%</span>
+        <span class="stat-label">Success Rate</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-number">{{ avg_response_time|floatformat:2 }}s</span>
+        <span class="stat-label">Avg Response</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-number">{{ recent_calls }}</span>
+        <span class="stat-label">Last 30 Days</span>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <div class="filter-group">
+            <label><i class="fas fa-tag"></i> Service</label>
+            <select name="service" class="form-select">
+                <option value="">All Services</option>
+                {% for service in services %}
+                <option value="{{ service.id }}" {% if selected_service == service.id|stringformat:"s" %}selected{% endif %}>
+                    {{ service.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label><i class="fas fa-circle"></i> Status</label>
+            <select name="is_error" class="form-select">
+                <option value="">All</option>
+                <option value="true" {% if selected_error == 'true' %}selected{% endif %}>Errors Only</option>
+                <option value="false" {% if selected_error == 'false' %}selected{% endif %}>Success Only</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label><i class="fas fa-calendar"></i> Date From</label>
+            <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+        </div>
+        
+        <div class="filter-group">
+            <label><i class="fas fa-calendar"></i> Date To</label>
+            <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+        </div>
+        
+        <div class="filter-actions">
+            <button type="submit" class="btn-intel">
+                <i class="fas fa-filter"></i> Apply
+            </button>
+            <a href="{% url 'core_settings:api_usage_logs' %}" class="btn-intel-outline">
+                <i class="fas fa-undo"></i> Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Logs Table -->
+<div class="logs-card">
+    <div class="card-header">
+        <h5><i class="fas fa-list"></i> Usage Logs</h5>
+        <span class="entry-count">{{ page_obj.paginator.count }} entries</span>
+    </div>
+    <div class="card-body">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Service</th>
+                        <th>Endpoint</th>
+                        <th>Status</th>
+                        <th>Response</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in page_obj %}
+                    <tr>
+                        <td>
+                            <span class="timestamp">{{ log.timestamp|date:"Y-m-d H:i:s" }}</span>
+                            <span class="time-ago">{{ log.timestamp|timesince }} ago</span>
+                        </td>
+                        <td>
+                            <div class="service-name">
+                                <strong>{{ log.service.name }}</strong>
+                                <span class="text-muted small">{{ log.service.get_service_type_display }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <code class="endpoint">{{ log.endpoint|truncatechars:30 }}</code>
+                            <span class="method-badge {{ log.method|lower }}">{{ log.method }}</span>
+                        </td>
+                        <td>
+                            <span class="status-badge {% if log.is_error %}error{% else %}success{% endif %}">
+                                {{ log.response_status }}
+                                {% if log.is_error %}
+                                <i class="fas fa-times"></i>
+                                {% else %}
+                                <i class="fas fa-check"></i>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>{{ log.response_time|floatformat:3 }}s</td>
+                        <td>
+                            <button class="btn-details" type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#log-details-{{ forloop.counter }}">
+                                <i class="fas fa-chevron-down"></i> View
+                            </button>
+                            <div class="collapse mt-2" id="log-details-{{ forloop.counter }}">
+                                <div class="log-details">
+                                    {% if log.request_data %}
+                                    <div class="detail-section">
+                                        <strong>Request:</strong>
+                                        <pre>{{ log.request_data|pprint }}</pre>
+                                    </div>
+                                    {% endif %}
+                                    {% if log.response_data %}
+                                    <div class="detail-section">
+                                        <strong>Response:</strong>
+                                        <pre>{{ log.response_data|pprint }}</pre>
+                                    </div>
+                                    {% endif %}
+                                    {% if log.error_message %}
+                                    <div class="detail-section text-danger">
+                                        <strong>Error:</strong>
+                                        <pre>{{ log.error_message }}</pre>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination-wrapper">
+            <span class="pagination-info">
+                Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+            </span>
+            <nav>
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_service %}&service={{ selected_service }}{% endif %}{% if selected_error %}&is_error={{ selected_error }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if selected_service %}&service={{ selected_service }}{% endif %}{% if selected_error %}&is_error={{ selected_error }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_service %}&service={{ selected_service }}{% endif %}{% if selected_error %}&is_error={{ selected_error }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-chart-bar"></i>
+            <h4>No Usage Logs</h4>
+            <p>API usage logs will appear here once you make API calls.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Clear Logs Modal -->
+<div class="modal fade" id="clearLogsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-trash-alt text-danger"></i> Clear Old Logs</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'core_settings:api_usage_clear' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>Delete your API usage logs older than:</p>
+                    <div class="form-group">
+                        <select name="days" class="form-select">
+                            <option value="7">7 days</option>
+                            <option value="30" selected>30 days</option>
+                            <option value="90">90 days</option>
+                            <option value="180">180 days</option>
+                            <option value="365">1 year</option>
+                        </select>
+                    </div>
+                    <p class="text-muted small mt-2">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-intel-outline" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-danger">
+                        <i class="fas fa-trash-alt"></i> Delete Logs
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.usage-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.stat-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.stat-box:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+}
+
+.stat-box .stat-number {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-box .stat-number.text-danger {
+    color: #ff4757;
+}
+
+.stat-box .stat-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+.filter-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 130px;
+}
+
+.filter-group label {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-group label i {
+    margin-right: 4px;
+    font-size: 0.7rem;
+}
+
+.filter-group .form-control,
+.filter-group .form-select {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.filter-group .form-control:focus,
+.filter-group .form-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.filter-actions .btn-intel,
+.filter-actions .btn-intel-outline {
+    padding: 8px 18px;
+    font-size: 0.85rem;
+}
+
+.logs-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.logs-card .card-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logs-card .card-header h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.logs-card .card-header h5 i {
+    color: var(--accent-primary);
+    margin-right: 8px;
+}
+
+.logs-card .card-header .entry-count {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.logs-card .card-body {
+    padding: 0;
+}
+
+.logs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.logs-table th {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.logs-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.logs-table tr:hover td {
+    background: var(--bg-card-hover);
+}
+
+.timestamp {
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.time-ago {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.service-name {
+    font-size: 0.85rem;
+}
+
+.service-name strong {
+    display: block;
+}
+
+.endpoint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    background: var(--bg-input);
+    padding: 2px 8px;
+    border-radius: 3px;
+}
+
+.method-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-left: 4px;
+}
+
+.method-badge.get {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+}
+
+.method-badge.post {
+    background: rgba(0, 212, 255, 0.15);
+    color: var(--accent-primary);
+}
+
+.method-badge.put {
+    background: rgba(255, 165, 2, 0.15);
+    color: #ffa502;
+}
+
+.method-badge.delete {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-badge.success {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+}
+
+.status-badge.error {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.btn-details {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    padding: 4px 14px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-details:hover {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+}
+
+.log-details {
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+}
+
+.log-details .detail-section {
+    margin-bottom: 8px;
+}
+
+.log-details .detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.log-details pre {
+    margin: 4px 0 0 0;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.pagination-info {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.pagination {
+    margin: 0;
+    gap: 4px;
+}
+
+.pagination .page-item .page-link {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.pagination .page-item .page-link:hover {
+    background: var(--bg-card);
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: var(--bg-primary);
+}
+
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+}
+
+.modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+.modal-footer {
+    border-top-color: var(--border-color);
+}
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: #ff4757;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-danger:hover {
+    background: #ff0000;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 71, 87, 0.3);
+}
+
+@media (max-width: 768px) {
+    .usage-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        min-width: 100%;
+    }
+    
+    .filter-actions {
+        flex-direction: column;
+    }
+    
+    .filter-actions .btn-intel,
+    .filter-actions .btn-intel-outline {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .logs-table {
+        font-size: 0.8rem;
+    }
+    
+    .logs-table th,
+    .logs-table td {
+        padding: 6px 8px;
+    }
+    
+    .pagination-wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+{% endblock %}

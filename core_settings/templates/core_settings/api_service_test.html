@@ -1,0 +1,328 @@
+{% extends 'core_settings/base_settings.html' %}
+{% load static %}
+
+{% block settings_title %}Test API Connection{% endblock %}
+{% block settings_subtitle %}Verify connectivity for {{ service.name }}{% endblock %}
+
+{% block settings_actions %}
+<a href="{% url 'core_settings:api_services' %}" class="btn-intel-outline">
+    <i class="fas fa-arrow-left"></i> Back
+</a>
+{% endblock %}
+
+{% block settings_content %}
+<div class="test-container">
+    <div class="test-card">
+        <div class="test-info">
+            <div class="test-service">
+                <div class="service-icon {{ service.service_type|lower }}">
+                    <i class="fas fa-{% if service.service_type == 'IPQS' %}shield-alt{% elif service.service_type == 'VT' %}bug{% elif service.service_type == 'SHODAN' %}search{% elif service.service_type == 'ABUSEIPDB' %}ban{% elif service.service_type == 'GREYNOISE' %}eye{% else %}plug{% endif %}"></i>
+                </div>
+                <div>
+                    <h5>{{ service.name }}</h5>
+                    <span class="text-muted small">{{ service.get_service_type_display }}</span>
+                </div>
+            </div>
+            
+            <div class="test-status">
+                <span class="api-status {% if service.is_enabled %}active{% else %}inactive{% endif %}">
+                    <span class="status-dot"></span>
+                    {% if service.is_enabled %}Active{% else %}Inactive{% endif %}
+                </span>
+                {% if service.is_verified %}
+                <span class="badge bg-success">Verified</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="test-details">
+            <div class="detail-row">
+                <span class="detail-label">API Key</span>
+                <span class="detail-value">
+                    {{ service.api_key|truncatechars:20 }}
+                    <span class="text-muted small">(encrypted)</span>
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Base URL</span>
+                <span class="detail-value">{{ service.base_url|default:"Default endpoint" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Timeout</span>
+                <span class="detail-value">{{ service.timeout }}s</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Rate Limit</span>
+                <span class="detail-value">{{ service.rate_limit }}/{{ service.get_rate_limit_period_display }}</span>
+            </div>
+            {% if service.last_verified %}
+            <div class="detail-row">
+                <span class="detail-label">Last Verified</span>
+                <span class="detail-value">{{ service.last_verified|date:"Y-m-d H:i:s" }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <form method="post" class="test-form">
+            {% csrf_token %}
+            <div class="form-actions">
+                <button type="submit" class="btn-intel">
+                    <i class="fas fa-vial"></i> Test Connection
+                </button>
+                <a href="{% url 'core_settings:api_services' %}" class="btn-intel-outline">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+        
+        {% if test_result %}
+        <div class="test-result mt-3">
+            <div class="alert alert-{% if test_result.success %}success{% else %}danger{% endif %}">
+                <i class="fas fa-{% if test_result.success %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                {{ test_result.message }}
+                {% if test_result.details %}
+                <br>
+                <small class="text-muted">{{ test_result.details|pprint }}</small>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="test-sidebar">
+        <div class="info-card">
+            <h6><i class="fas fa-info-circle"></i> What is being tested?</h6>
+            <ul>
+                <li>API key validity</li>
+                <li>Network connectivity</li>
+                <li>Response time</li>
+                <li>Authentication</li>
+            </ul>
+        </div>
+        
+        <div class="info-card">
+            <h6><i class="fas fa-lightbulb"></i> Troubleshooting</h6>
+            <ul>
+                <li>Verify API key is correct</li>
+                <li>Check network connectivity</li>
+                <li>Ensure API service is enabled</li>
+                <li>Review usage logs for errors</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.test-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.test-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+}
+
+.test-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.test-service {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.service-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.service-icon.ipqs {
+    background: rgba(0, 212, 255, 0.15);
+    color: var(--accent-primary);
+}
+
+.service-icon.vt {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.service-icon.shodan {
+    background: rgba(255, 165, 2, 0.15);
+    color: #ffa502;
+}
+
+.service-icon.abuseipdb {
+    background: rgba(255, 0, 0, 0.15);
+    color: #ff0000;
+}
+
+.service-icon.greynoise {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+}
+
+.service-icon.custom {
+    background: rgba(155, 89, 182, 0.15);
+    color: #9b59b6;
+}
+
+.test-service h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.test-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.test-details {
+    margin: 16px 0;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.detail-value {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.test-form .form-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.test-result .alert {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.test-result .alert-success {
+    background: rgba(0, 212, 170, 0.1);
+    border: 1px solid rgba(0, 212, 170, 0.2);
+    color: #00d4aa;
+}
+
+.test-result .alert-danger {
+    background: rgba(255, 71, 87, 0.1);
+    border: 1px solid rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+}
+
+.test-result .alert i {
+    margin-right: 8px;
+}
+
+.info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+}
+
+.info-card h6 {
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+    font-size: 0.9rem;
+}
+
+.info-card h6 i {
+    color: var(--accent-primary);
+    margin-right: 8px;
+}
+
+.info-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-card ul li {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-card ul li::before {
+    content: "•";
+    color: var(--accent-primary);
+}
+
+@media (max-width: 992px) {
+    .test-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .test-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .test-form .form-actions {
+        flex-direction: column;
+    }
+    
+    .test-form .form-actions .btn-intel,
+    .test-form .form-actions .btn-intel-outline {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .test-card {
+        padding: 16px;
+    }
+}
+</style>
+{% endblock %}

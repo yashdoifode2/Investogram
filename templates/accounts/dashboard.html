@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Overview of your account activity{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_users|default:0 }}</h3>
+                <p>Total Users</p>
+                <span class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> 12%
+                </span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(0, 212, 170, 0.15); color: #00d4aa;">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ active_users|default:0 }}</h3>
+                <p>Active Users</p>
+                <span class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> 8%
+                </span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(255, 165, 2, 0.15); color: #ffa502;">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ recent_users|length|default:0 }}</h3>
+                <p>New This Week</p>
+                <span class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i> 5%
+                </span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(255, 71, 87, 0.15); color: #ff4757;">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+                <h3>24</h3>
+                <p>Pending Actions</p>
+                <span class="stat-change negative">
+                    <i class="fas fa-arrow-down"></i> 3%
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Welcome Section -->
+    <div class="welcome-card">
+        <div class="welcome-content">
+            <div class="welcome-text">
+                <h2>Welcome back, {{ user.get_full_name|default:user.username }}! 👋</h2>
+                <p>Here's what's happening with your account today.</p>
+            </div>
+            <div class="quick-actions">
+                <a href="{% url 'accounts:profile' %}" class="action-btn primary">
+                    <i class="fas fa-user"></i> View Profile
+                </a>
+                <a href="{% url 'accounts:profile_edit' %}" class="action-btn secondary">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </a>
+                <a href="{% url 'intelligence:dashboard' %}" class="action-btn outline">
+                    <i class="fas fa-shield-alt"></i> Intelligence
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Users -->
+    <div class="recent-users">
+        <div class="section-header">
+            <h3><i class="fas fa-user-plus"></i> Recent Users</h3>
+            <a href="#" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="user-list">
+            {% for recent_user in recent_users %}
+                <div class="user-item">
+                    <div class="user-avatar">
+                        {% if recent_user.profile_picture %}
+                            <img src="{{ recent_user.profile_picture.url }}" alt="{{ recent_user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder-small">{{ recent_user.username|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="user-details">
+                        <span class="name">{{ recent_user.get_full_name|default:recent_user.username }}</span>
+                        <span class="email">{{ recent_user.email }}</span>
+                        <span class="joined">Joined {{ recent_user.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <span class="user-status active">Active</span>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h3>No users yet</h3>
+                    <p>Start inviting team members to collaborate</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-change {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-top: 4px;
+    }
+    
+    .stat-change.positive {
+        color: #00d4aa;
+        background: rgba(0, 212, 170, 0.1);
+    }
+    
+    .stat-change.negative {
+        color: #ff4757;
+        background: rgba(255, 71, 87, 0.1);
+    }
+    
+    .stat-change i {
+        font-size: 0.65rem;
+    }
+    
+    .welcome-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .welcome-text {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .welcome-text strong {
+        color: var(--accent-primary);
+    }
+    
+    .quick-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        flex-shrink: 0;
+    }
+    
+    .action-btn.primary {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: #fff;
+        border: none;
+    }
+    
+    .action-btn.primary:hover {
+        box-shadow: 0 8px 24px var(--accent-glow);
+        transform: translateY(-2px);
+    }
+    
+    .action-btn.secondary {
+        background: var(--bg-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+    
+    .action-btn.secondary:hover {
+        background: var(--bg-card-hover);
+        border-color: var(--border-hover);
+        transform: translateY(-2px);
+    }
+    
+    .action-btn.outline {
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+    
+    .action-btn.outline:hover {
+        background: var(--bg-card);
+        color: var(--text-primary);
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .welcome-content {
+            flex-direction: column;
+        }
+        
+        .quick-actions {
+            width: 100%;
+        }
+        
+        .quick-actions .action-btn {
+            flex: 1;
+            justify-content: center;
+            min-width: 120px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-actions {
+            flex-direction: column;
+        }
+        
+        .quick-actions .action-btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
