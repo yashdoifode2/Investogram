@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from cryptography.fernet import Fernet
 
 User = get_user_model()
 
 class APIService(models.Model):
-    """Model for storing API service configurations"""
+    """Model for storing API service configurations per user"""
     
     SERVICE_TYPES = [
         ('IPQS', 'IPQualityScore'),
@@ -34,7 +35,7 @@ class APIService(models.Model):
     rate_limit_period = models.CharField(max_length=20, choices=RATE_LIMIT_PERIODS, default='day')
     timeout = models.IntegerField(default=30, help_text="Request timeout in seconds")
     max_retries = models.IntegerField(default=3, help_text="Maximum retry attempts on failure")
-    extra_config = models.JSONField(default=dict, blank=True, help_text="Additional configuration in JSON format")
+    extra_config = models.JSONField(default=dict, blank=True)
     
     # User ownership
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='api_services')
@@ -76,7 +77,7 @@ class APIService(models.Model):
 
 
 class APIUsageLog(models.Model):
-    """Model for tracking API usage"""
+    """Model for tracking API usage per user"""
     
     service = models.ForeignKey(APIService, on_delete=models.CASCADE, related_name='usage_logs')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='api_usage_logs')
@@ -96,6 +97,7 @@ class APIUsageLog(models.Model):
         indexes = [
             models.Index(fields=['user', 'timestamp']),
             models.Index(fields=['service', 'timestamp']),
+            models.Index(fields=['is_error']),
         ]
         verbose_name = 'API Usage Log'
         verbose_name_plural = 'API Usage Logs'
@@ -105,7 +107,7 @@ class APIUsageLog(models.Model):
 
 
 class APIAuditLog(models.Model):
-    """Model for API audit logging"""
+    """Model for API audit logging per user"""
     
     ACTION_TYPES = [
         ('CONFIG_UPDATE', 'Configuration Updated'),
@@ -120,7 +122,7 @@ class APIAuditLog(models.Model):
         ('SERVICE_DELETE', 'Service Deleted'),
     ]
     
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='api_audit_logs')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='audit_logs')
     action = models.CharField(max_length=20, choices=ACTION_TYPES)
     details = models.JSONField(default=dict)
     ip_address = models.GenericIPAddressField(null=True, blank=True)

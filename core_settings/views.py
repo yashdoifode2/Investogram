@@ -5,8 +5,6 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Count, Avg
 from django.utils import timezone
-from django.conf import settings
-import json
 from datetime import timedelta
 
 from .models import APIService, APIUsageLog, APIAuditLog
@@ -34,7 +32,7 @@ def check_api_status(user):
                 'status_class': 'inactive',
                 'status_icon': 'fa-times-circle',
                 'status_color': '#ff4757',
-                'message': 'Please add your IPQualityScore API key in Settings → API Services'
+                'message': 'Please add your API key'
             }
         
         if not ipqs_service.is_enabled:
@@ -48,7 +46,7 @@ def check_api_status(user):
                 'status_class': 'inactive',
                 'status_icon': 'fa-exclamation-triangle',
                 'status_color': '#ffa502',
-                'message': 'Your API key is currently disabled. Enable it to use intelligence features.'
+                'message': 'Your API key is currently disabled.'
             }
         
         if ipqs_service.is_verified and ipqs_service.last_verified:
@@ -65,7 +63,7 @@ def check_api_status(user):
                     'status_class': 'active',
                     'status_icon': 'fa-check-circle',
                     'status_color': '#00d4aa',
-                    'message': f'API key verified on {ipqs_service.last_verified.strftime("%Y-%m-%d %H:%M")}'
+                    'message': f'Verified on {ipqs_service.last_verified.strftime("%Y-%m-%d %H:%M")}'
                 }
             else:
                 return {
@@ -79,7 +77,7 @@ def check_api_status(user):
                     'status_class': 'warning',
                     'status_icon': 'fa-exclamation-triangle',
                     'status_color': '#ffa502',
-                    'message': 'Your API key verification is older than 7 days. Please re-verify.'
+                    'message': 'API key needs re-verification'
                 }
         
         return {
@@ -92,7 +90,7 @@ def check_api_status(user):
             'status_class': 'warning',
             'status_icon': 'fa-exclamation-triangle',
             'status_color': '#ffa502',
-            'message': 'Your API key has not been verified. Click "Test Connection" to verify.'
+            'message': 'API key not verified. Click "Test Connection" to verify.'
         }
         
     except Exception as e:
@@ -104,7 +102,7 @@ def check_api_status(user):
             'status_class': 'inactive',
             'status_icon': 'fa-times-circle',
             'status_color': '#ff4757',
-            'message': f'Error checking API status: {str(e)}'
+            'message': f'Error: {str(e)}'
         }
 
 
@@ -147,32 +145,6 @@ def api_service_create(request):
             service.user = request.user
             service.save()
             
-            # Try to verify the API key
-            try:
-                from intelligence.services.ipqs_service import IPQualityScoreService
-                ipqs = IPQualityScoreService(user=request.user)
-                test_result = ipqs.test_connection()
-                
-                if test_result.get('success'):
-                    service.is_verified = True
-                    service.last_verified = timezone.now()
-                    service.save()
-                    messages.success(
-                        request, 
-                        f'✅ API service "{service.name}" created and verified successfully!'
-                    )
-                else:
-                    messages.warning(
-                        request, 
-                        f'⚠️ API service "{service.name}" created but verification failed. '
-                        f'Please test the connection. Error: {test_result.get("message", "Unknown error")}'
-                    )
-            except Exception as e:
-                messages.warning(
-                    request, 
-                    f'⚠️ API service "{service.name}" created but could not verify: {str(e)}'
-                )
-            
             # Log the creation
             APIAuditLog.objects.create(
                 user=request.user,
@@ -185,6 +157,7 @@ def api_service_create(request):
                 ip_address=request.META.get('REMOTE_ADDR')
             )
             
+            messages.success(request, f'API service "{service.name}" created successfully')
             return redirect('core_settings:api_services')
         else:
             for field, errors in form.errors.items():
@@ -209,31 +182,15 @@ def api_service_edit(request, service_id):
     if request.method == 'POST':
         form = APIServiceForm(request.POST, instance=service)
         if form.is_valid():
-            service = form.save(commit=False)
-            
-            # Check if API key changed
+            # Reset verification if key changed
             old_service = APIService.objects.get(id=service_id)
             if old_service.api_key != service.api_key:
                 service.is_verified = False
                 service.last_verified = None
-                
-                # Try to verify new key
-                try:
-                    from intelligence.services.ipqs_service import IPQualityScoreService
-                    ipqs = IPQualityScoreService(user=request.user)
-                    test_result = ipqs.test_connection()
-                    
-                    if test_result.get('success'):
-                        service.is_verified = True
-                        service.last_verified = timezone.now()
-                        messages.success(request, '✅ New API key verified successfully!')
-                    else:
-                        messages.warning(request, f'⚠️ New API key verification failed: {test_result.get("message", "Unknown error")}')
-                except Exception as e:
-                    messages.warning(request, f'⚠️ Could not verify new API key: {str(e)}')
             
             service.save()
             
+            # Log the update
             APIAuditLog.objects.create(
                 user=request.user,
                 action='SERVICE_UPDATE',
@@ -290,80 +247,6 @@ def api_service_delete(request, service_id):
 
 
 @login_required
-def api_service_test(request, service_id):
-    """Test a user's API service connection"""
-    service = get_object_or_404(APIService, id=service_id, user=request.user)
-    test_result = None
-    
-    if request.method == 'POST':
-        try:
-            from intelligence.services.ipqs_service import IPQualityScoreService
-            
-            # Test with user's API key
-            ipqs = IPQualityScoreService(user=request.user)
-            
-            # Log test attempt
-            messages.info(request, f'🔍 Testing API connection for "{service.name}"...')
-            
-            result = ipqs.test_connection()
-            
-            if result.get('success'):
-                service.is_verified = True
-                service.last_verified = timezone.now()
-                service.save()
-                
-                test_result = {
-                    'success': True,
-                    'message': f'✅ Successfully connected to {service.name}',
-                    'details': result
-                }
-                messages.success(request, f'✅ API service "{service.name}" verified successfully!')
-            else:
-                service.is_verified = False
-                service.save()
-                
-                error_msg = result.get('message', 'Connection failed')
-                test_result = {
-                    'success': False,
-                    'message': f'❌ {service.name} test failed: {error_msg}',
-                    'details': result
-                }
-                messages.error(request, f'❌ API service "{service.name}" test failed: {error_msg}')
-            
-            # Log the test
-            APIAuditLog.objects.create(
-                user=request.user,
-                action='CONFIG_TEST',
-                details={
-                    'service': service.name,
-                    'type': service.service_type,
-                    'result': test_result.get('success', False),
-                    'message': test_result.get('message', '')
-                },
-                ip_address=request.META.get('REMOTE_ADDR')
-            )
-            
-        except Exception as e:
-            test_result = {
-                'success': False,
-                'message': f'❌ Error: {str(e)}',
-                'details': {}
-            }
-            service.is_verified = False
-            service.save()
-            messages.error(request, f'❌ Error testing API: {str(e)}')
-        
-        return redirect('core_settings:api_services')
-    
-    context = {
-        'service': service,
-        'test_result': test_result,
-        'active_tab': 'api_services',
-    }
-    return render(request, 'core_settings/api_service_test.html', context)
-
-
-@login_required
 def api_service_toggle(request, service_id):
     """Toggle user's API service enabled/disabled"""
     service = get_object_or_404(APIService, id=service_id, user=request.user)
@@ -380,17 +263,10 @@ def api_service_toggle(request, service_id):
             ip_address=request.META.get('REMOTE_ADDR')
         )
         
-        status = 'enabled ✅' if service.is_enabled else 'disabled ❌'
+        status = 'enabled' if service.is_enabled else 'disabled'
         messages.success(request, f'API service "{service.name}" {status} successfully')
     
     return redirect('core_settings:api_services')
-
-
-@login_required
-def api_status_json(request):
-    """Return API status as JSON"""
-    status = check_api_status(request.user)
-    return JsonResponse(status)
 
 
 # ============================================
@@ -462,7 +338,7 @@ def api_usage_clear(request):
         deleted_count = APIUsageLog.objects.filter(user=request.user, timestamp__lt=cutoff).count()
         APIUsageLog.objects.filter(user=request.user, timestamp__lt=cutoff).delete()
         
-        messages.success(request, f'🗑️ Deleted {deleted_count} old usage logs (older than {days} days)')
+        messages.success(request, f'Deleted {deleted_count} old usage logs (older than {days} days)')
         return redirect('core_settings:api_usage_logs')
     
     return redirect('core_settings:api_usage_logs')

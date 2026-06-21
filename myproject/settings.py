@@ -22,8 +22,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
-    'intelligence',  # Add this
-    'email_forensics',
+    #'intelligence',  # Add this
+    #'email_forensics',
     'crispy_forms',
     'crispy_bootstrap5',
     'core_settings',  # Add this

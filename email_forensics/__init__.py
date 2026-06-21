@@ -1,1 +1,0 @@
-default_app_config = 'email_forensics.apps.EmailForensicsConfig'

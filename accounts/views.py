@@ -3,7 +3,8 @@ from django.contrib.auth import login, authenticate, logout, update_session_auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.http import JsonResponse
 from .forms import RegisterForm, LoginForm, ProfileUpdateForm
 from .models import CustomUser
 from .decorators import login_required_decorator

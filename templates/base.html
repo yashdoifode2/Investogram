@@ -51,102 +51,20 @@
                     </ul>
                 </div>
 
-                <!-- Intelligence Section -->
+                <!-- API Management Section -->
                 <div class="nav-section">
-                    <span class="nav-section-label">Intelligence</span>
-                    <ul>
-                        <li>
-                            <a href="{% url 'intelligence:dashboard' %}" class="{% if 'intelligence' in request.path and 'settings' not in request.path %}active{% endif %}">
-                                <i class="fas fa-shield-alt"></i>
-                                <span>Intelligence Hub</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'intelligence:ip_lookup' %}" class="{% if 'ip' in request.path %}active{% endif %}">
-                                <i class="fas fa-network-wired"></i>
-                                <span>IP Intelligence</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'intelligence:email_lookup' %}" class="{% if 'email' in request.path %}active{% endif %}">
-                                <i class="fas fa-envelope"></i>
-                                <span>Email Intelligence</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'intelligence:phone_lookup' %}" class="{% if 'phone' in request.path %}active{% endif %}">
-                                <i class="fas fa-phone"></i>
-                                <span>Phone Intelligence</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'intelligence:url_lookup' %}" class="{% if 'url' in request.path %}active{% endif %}">
-                                <i class="fas fa-link"></i>
-                                <span>URL Intelligence</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'intelligence:breach_lookup' %}" class="{% if 'breach' in request.path %}active{% endif %}">
-                                <i class="fas fa-user-secret"></i>
-                                <span>Breach Intelligence</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'intelligence:search_history' %}" class="{% if 'history' in request.path %}active{% endif %}">
-                                <i class="fas fa-history"></i>
-                                <span>Search History</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-               <!-- Add this section in the sidebar -->
-<!-- Forensics Section -->
-<!-- Forensics Section -->
-<div class="nav-section">
-    <span class="nav-section-label">Forensics</span>
-    <ul>
-        <li>
-            <a href="{% url 'email_forensics:dashboard' %}" class="{% if 'forensics' in request.path and 'analyze' not in request.path and 'history' not in request.path and 'breach' not in request.path and 'social' not in request.path and 'attachment' not in request.path %}active{% endif %}">
-                <i class="fas fa-bug"></i>
-                <span>Forensics Dashboard</span>
-            </a>
-        </li>
-        <li>
-            <a href="{% url 'email_forensics:analyze_email' %}" class="{% if 'analyze' in request.path %}active{% endif %}">
-                <i class="fas fa-envelope-open-text"></i>
-                <span>Analyze Email</span>
-            </a>
-        </li>
-        <li>
-            <a href="{% url 'email_forensics:breach_intelligence' %}" class="{% if 'breach' in request.path %}active{% endif %}">
-                <i class="fas fa-database"></i>
-                <span>Breach Intelligence</span>
-            </a>
-        </li>
-        <li>
-            <a href="{% url 'email_forensics:social_discovery' %}" class="{% if 'social' in request.path %}active{% endif %}">
-                <i class="fas fa-users"></i>
-                <span>Social Discovery</span>
-            </a>
-        </li>
-        <li>
-            <a href="{% url 'email_forensics:analysis_history' %}" class="{% if 'history' in request.path %}active{% endif %}">
-                <i class="fas fa-list"></i>
-                <span>Analysis History</span>
-            </a>
-        </li>
-    </ul>
-</div>
-
-                <!-- Tools Section -->
-                <div class="nav-section">
-                    <span class="nav-section-label">Tools</span>
+                    <span class="nav-section-label">API Management</span>
                     <ul>
                         <li>
                             <a href="{% url 'core_settings:api_services' %}" class="{% if 'api-services' in request.path %}active{% endif %}">
-                                <i class="fas fa-key"></i>
-                                <span>API Settings</span>
+                                <i class="fas fa-plug"></i>
+                                <span>API Services</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'core_settings:api_usage_logs' %}" class="{% if 'api-usage' in request.path %}active{% endif %}">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Usage Logs</span>
                             </a>
                         </li>
                         <li>
