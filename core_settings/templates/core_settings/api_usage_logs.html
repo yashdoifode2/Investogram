@@ -10,6 +10,460 @@
 </button>
 {% endblock %}
 
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* ========================================
+   API USAGE LOGS - PAGE SPECIFIC STYLES
+   ======================================== */
+
+/* Stats Overview */
+.settings-content .usage-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.settings-content .stat-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-content .stat-box:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.settings-content .stat-box .stat-number {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.settings-content .stat-box .stat-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 2px;
+}
+
+/* Filters Bar */
+.settings-content .filters-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.settings-content .filters-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.settings-content .filter-group {
+    flex: 1;
+    min-width: 140px;
+}
+
+.settings-content .filter-group label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.settings-content .filter-group label i {
+    margin-right: 4px;
+}
+
+.settings-content .filter-group .form-select,
+.settings-content .filter-group .form-control {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-content .filter-group .form-select:focus,
+.settings-content .filter-group .form-control:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.settings-content .filter-group .form-select option {
+    background: var(--bg-secondary);
+}
+
+.settings-content .filter-actions {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+/* Logs Card */
+.settings-content .logs-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.settings-content .logs-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-content .logs-card .card-header h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.settings-content .logs-card .card-header h5 i {
+    color: var(--accent-primary);
+    margin-right: 8px;
+}
+
+.settings-content .logs-card .card-header .entry-count {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.settings-content .logs-card .card-body {
+    padding: 0;
+}
+
+/* Table Styles */
+.settings-content .logs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.settings-content .logs-table thead {
+    background: var(--bg-secondary);
+}
+
+.settings-content .logs-table th {
+    padding: 12px 16px;
+    text-align: left;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-content .logs-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+.settings-content .logs-table tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+.settings-content .timestamp {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.settings-content .time-ago {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.settings-content .service-name strong {
+    color: var(--text-primary);
+}
+
+.settings-content .service-name .text-muted {
+    color: var(--text-muted);
+}
+
+.settings-content .endpoint {
+    color: var(--text-secondary);
+    background: var(--bg-input);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.settings-content .method-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.settings-content .method-badge.get { background: rgba(79, 140, 255, 0.15); color: #4f8cff; }
+.settings-content .method-badge.post { background: rgba(0, 212, 170, 0.15); color: #00d4aa; }
+.settings-content .method-badge.put { background: rgba(255, 165, 2, 0.15); color: #ffa502; }
+.settings-content .method-badge.delete { background: rgba(255, 71, 87, 0.15); color: #ff4757; }
+
+.settings-content .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.settings-content .status-badge.success {
+    background: rgba(0, 212, 170, 0.12);
+    color: #00d4aa;
+}
+
+.settings-content .status-badge.error {
+    background: rgba(255, 71, 87, 0.12);
+    color: #ff4757;
+}
+
+.settings-content .btn-details {
+    background: none;
+    border: none;
+    color: var(--accent-primary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-content .btn-details:hover {
+    background: var(--accent-glow);
+}
+
+.settings-content .log-details {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-top: 8px;
+}
+
+.settings-content .log-details .detail-section {
+    margin-bottom: 8px;
+}
+
+.settings-content .log-details .detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.settings-content .log-details .detail-section strong {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+}
+
+.settings-content .log-details .detail-section pre {
+    margin: 0;
+    padding: 8px 12px;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.settings-content .log-details .detail-section.text-danger strong {
+    color: #ff4757;
+}
+
+/* Pagination */
+.settings-content .pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.settings-content .pagination-info {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.settings-content .pagination {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.settings-content .page-item .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-content .page-item .page-link:hover {
+    background: var(--bg-card);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+}
+
+.settings-content .page-item.active .page-link {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+}
+
+.settings-content .page-item.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Empty State */
+.settings-content .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.settings-content .empty-state i {
+    font-size: 3rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.settings-content .empty-state h4 {
+    color: var(--text-primary);
+    margin: 0 0 8px;
+}
+
+.settings-content .empty-state p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Modal */
+.settings-content .modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+}
+
+.settings-content .modal-header {
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 20px;
+}
+
+.settings-content .modal-header .modal-title {
+    color: var(--text-primary);
+}
+
+.settings-content .modal-header .btn-close-white {
+    filter: invert(1);
+}
+
+.settings-content .modal-body {
+    padding: 20px;
+    color: var(--text-primary);
+}
+
+.settings-content .modal-footer {
+    border-top: 1px solid var(--border-color);
+    padding: 16px 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .settings-content .filters-form {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .settings-content .filter-group {
+        width: 100%;
+        min-width: unset;
+    }
+    
+    .settings-content .filter-actions {
+        width: 100%;
+    }
+    
+    .settings-content .filter-actions .btn-intel,
+    .settings-content .filter-actions .btn-intel-outline {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .settings-content .logs-table {
+        font-size: 0.8rem;
+    }
+    
+    .settings-content .logs-table th,
+    .settings-content .logs-table td {
+        padding: 10px 12px;
+    }
+    
+    .settings-content .pagination-wrapper {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .settings-content .usage-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .settings-content .stat-box {
+        padding: 12px 16px;
+    }
+    
+    .settings-content .stat-box .stat-number {
+        font-size: 1.4rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block settings_content %}
 <!-- Stats Overview -->
 <div class="usage-stats">

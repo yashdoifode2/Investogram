@@ -5,6 +5,531 @@
 {% block page_title %}Edit Profile{% endblock %}
 {% block page_subtitle %}Update your personal information{% endblock %}
 
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* ========================================
+   EDIT PROFILE - FULL WIDTH
+   ======================================== */
+
+.edit-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.edit-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    padding: 40px 48px;
+    width: 100%;
+}
+
+.edit-header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.edit-header h2 {
+    color: var(--text-primary);
+    margin: 0 0 6px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.edit-header h2 i {
+    color: var(--accent-primary);
+    margin-right: 12px;
+}
+
+.edit-header p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* ========================================
+   FORM STYLES
+   ======================================== */
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group label i {
+    margin-right: 6px;
+    color: var(--accent-primary);
+}
+
+.form-group .form-control {
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.form-group .form-control:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.form-group .form-control:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.form-group .form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.form-group textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+    line-height: 1.6;
+}
+
+.form-group .form-control-file {
+    padding: 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    width: 100%;
+    cursor: pointer;
+}
+
+.form-group .form-control-file::-webkit-file-upload-button {
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    margin-right: 12px;
+    transition: all 0.3s ease;
+}
+
+.form-group .form-control-file::-webkit-file-upload-button:hover {
+    border-color: var(--accent-primary);
+}
+
+.form-group .help-text {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+
+.form-group .help-text i {
+    margin-right: 4px;
+}
+
+/* Input with icon */
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+    pointer-events: none;
+}
+
+.input-with-icon .form-control {
+    padding-left: 42px;
+}
+
+.input-with-icon .form-control:focus + i {
+    color: var(--accent-primary);
+}
+
+/* ========================================
+   PROFILE PICTURE UPLOAD
+   ======================================== */
+.profile-picture-upload {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 20px 24px;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-picture-upload:hover {
+    border-color: var(--border-hover);
+}
+
+.current-picture {
+    flex-shrink: 0;
+    position: relative;
+}
+
+.current-picture img {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--accent-primary);
+    box-shadow: 0 0 20px var(--accent-glow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.current-picture img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px var(--accent-glow);
+}
+
+.placeholder-picture {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-input));
+    border: 3px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.placeholder-picture:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.upload-controls {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
+    font-size: 0.9rem;
+    max-width: 220px;
+}
+
+.upload-btn:hover {
+    border-color: var(--accent-primary);
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.upload-btn i {
+    color: var(--accent-primary);
+}
+
+.upload-controls .help-text {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+/* ========================================
+   FORM ACTIONS
+   ======================================== */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+    margin-top: 8px;
+}
+
+.btn-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 36px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-save::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px var(--accent-glow);
+}
+
+.btn-save:hover::before {
+    left: 100%;
+}
+
+.btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 36px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.95rem;
+}
+
+.btn-cancel:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   PASSWORD SECTION
+   ======================================== */
+.password-section {
+    margin-top: 32px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border-color);
+}
+
+.password-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.password-info .password-text {
+    flex: 1;
+    min-width: 200px;
+}
+
+.password-info h3 {
+    color: var(--text-primary);
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.password-info h3 i {
+    color: var(--accent-primary);
+    margin-right: 10px;
+}
+
+.password-info p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.btn-change-password {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 28px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.btn-change-password:hover {
+    border-color: var(--accent-primary);
+    background: var(--bg-card-hover);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-sm);
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 1024px) {
+    .edit-card {
+        padding: 32px 36px;
+    }
+}
+
+@media (max-width: 768px) {
+    .edit-card {
+        padding: 24px;
+    }
+    
+    .edit-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .profile-picture-upload {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .current-picture img,
+    .placeholder-picture {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .upload-btn {
+        max-width: 100%;
+        justify-content: center;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-save,
+    .btn-cancel {
+        justify-content: center;
+        width: 100%;
+        padding: 12px 24px;
+    }
+    
+    .password-info {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .password-info .password-text {
+        width: 100%;
+    }
+    
+    .btn-change-password {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .edit-card {
+        padding: 16px 20px;
+    }
+    
+    .edit-header {
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+    }
+    
+    .edit-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .edit-header p {
+        font-size: 0.85rem;
+    }
+    
+    .form-group .form-control {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+    
+    .profile-picture-upload {
+        padding: 16px;
+        gap: 16px;
+    }
+    
+    .current-picture img,
+    .placeholder-picture {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .upload-btn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+    
+    .btn-save,
+    .btn-cancel,
+    .btn-change-password {
+        font-size: 0.85rem;
+        padding: 10px 20px;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="edit-container">
     <div class="edit-card">
@@ -18,7 +543,7 @@
             
             <!-- Profile Picture -->
             <div class="form-group full">
-                <label>Profile Picture</label>
+                <label><i class="fas fa-camera"></i> Profile Picture</label>
                 <div class="profile-picture-upload">
                     <div class="current-picture">
                         {% if user.profile_picture %}
@@ -34,57 +559,60 @@
                             <i class="fas fa-cloud-upload-alt"></i> Choose Image
                         </label>
                         {{ form.profile_picture }}
-                        <p class="help-text">Recommended: Square image, at least 200x200px</p>
+                        <span class="help-text"><i class="fas fa-info-circle"></i> Recommended: Square image, at least 200x200px</span>
                     </div>
                 </div>
             </div>
             
             <!-- Username -->
             <div class="form-group full">
-                <label for="id_username">Username</label>
+                <label for="id_username"><i class="fas fa-user-tag"></i> Username</label>
                 {{ form.username }}
+                {% if form.username.help_text %}
+                    <span class="help-text"><i class="fas fa-info-circle"></i> {{ form.username.help_text }}</span>
+                {% endif %}
             </div>
             
             <!-- Name Fields -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="id_first_name">First Name</label>
+                    <label for="id_first_name"><i class="fas fa-user"></i> First Name</label>
                     {{ form.first_name }}
                 </div>
                 <div class="form-group">
-                    <label for="id_last_name">Last Name</label>
+                    <label for="id_last_name"><i class="fas fa-user"></i> Last Name</label>
                     {{ form.last_name }}
                 </div>
             </div>
             
             <!-- Email (read-only) -->
             <div class="form-group full">
-                <label>Email Address</label>
+                <label><i class="fas fa-envelope"></i> Email Address</label>
                 <input type="email" value="{{ user.email }}" class="form-control" disabled>
-                <span class="help-text">Email cannot be changed. Contact support for assistance.</span>
+                <span class="help-text"><i class="fas fa-info-circle"></i> Email cannot be changed. Contact support for assistance.</span>
             </div>
             
             <!-- Bio -->
             <div class="form-group full">
-                <label for="id_bio">Bio</label>
+                <label for="id_bio"><i class="fas fa-align-left"></i> Bio</label>
                 {{ form.bio }}
-                <span class="help-text">Tell us a bit about yourself. Max 500 characters.</span>
+                <span class="help-text"><i class="fas fa-info-circle"></i> Tell us a bit about yourself. Max 500 characters.</span>
             </div>
             
             <!-- Location & Phone -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="id_location">Location</label>
+                    <label for="id_location"><i class="fas fa-map-marker-alt"></i> Location</label>
                     <div class="input-with-icon">
-                        <i class="fas fa-map-marker-alt"></i>
                         {{ form.location }}
+                        <i class="fas fa-map-marker-alt"></i>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="id_phone_number">Phone Number</label>
+                    <label for="id_phone_number"><i class="fas fa-phone"></i> Phone Number</label>
                     <div class="input-with-icon">
-                        <i class="fas fa-phone"></i>
                         {{ form.phone_number }}
+                        <i class="fas fa-phone"></i>
                     </div>
                 </div>
             </div>
@@ -92,14 +620,14 @@
             <!-- Website & Birth Date -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="id_website">Website</label>
+                    <label for="id_website"><i class="fas fa-globe"></i> Website</label>
                     <div class="input-with-icon">
-                        <i class="fas fa-globe"></i>
                         {{ form.website }}
+                        <i class="fas fa-globe"></i>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="id_birth_date">Birth Date</label>
+                    <label for="id_birth_date"><i class="fas fa-birthday-cake"></i> Birth Date</label>
                     {{ form.birth_date }}
                 </div>
             </div>
@@ -118,7 +646,7 @@
         <!-- Password Section -->
         <div class="password-section">
             <div class="password-info">
-                <div>
+                <div class="password-text">
                     <h3><i class="fas fa-shield-alt"></i> Security</h3>
                     <p>Keep your account secure by updating your password regularly.</p>
                 </div>
@@ -131,344 +659,32 @@
 </div>
 {% endblock %}
 
-{% block extra_css %}
-<style>
-    .edit-container {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    
-    .edit-card {
-        background: var(--bg-card);
-        border-radius: var(--radius-md);
-        border: 1px solid var(--border-color);
-        padding: 36px;
-    }
-    
-    .edit-header {
-        margin-bottom: 28px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid var(--border-color);
-    }
-    
-    .edit-header h2 {
-        color: var(--text-primary);
-        margin: 0 0 4px;
-        font-size: 1.4rem;
-        font-weight: 700;
-    }
-    
-    .edit-header h2 i {
-        color: var(--accent-primary);
-        margin-right: 10px;
-    }
-    
-    .edit-header p {
-        color: var(--text-secondary);
-        margin: 0;
-    }
-    
-    .edit-form {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-    
-    .form-group.full {
-        grid-column: 1 / -1;
-    }
-    
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-    
-    .form-group label {
-        color: var(--text-secondary);
-        font-weight: 500;
-        font-size: 0.85rem;
-    }
-    
-    .form-group .form-control {
-        padding: 12px 16px;
-        background: var(--bg-input);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-sm);
-        color: var(--text-primary);
-        font-size: 0.95rem;
-        transition: var(--transition);
-        width: 100%;
-        box-sizing: border-box;
-        font-family: inherit;
-    }
-    
-    .form-group .form-control:focus {
-        outline: none;
-        border-color: var(--accent-primary);
-        box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-    
-    .form-group .form-control:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-    
-    .form-group textarea.form-control {
-        resize: vertical;
-        min-height: 100px;
-        font-family: inherit;
-    }
-    
-    .form-group .form-control-file {
-        padding: 10px;
-        background: var(--bg-input);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-sm);
-        color: var(--text-secondary);
-        width: 100%;
-        cursor: pointer;
-    }
-    
-    .form-group .help-text {
-        color: var(--text-muted);
-        font-size: 0.8rem;
-        margin-top: 4px;
-    }
-    
-    .input-with-icon {
-        position: relative;
-    }
-    
-    .input-with-icon i {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        font-size: 0.9rem;
-    }
-    
-    .input-with-icon .form-control {
-        padding-left: 40px;
-    }
-    
-    .profile-picture-upload {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-        padding: 16px;
-        background: var(--bg-input);
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border-color);
-    }
-    
-    .current-picture {
-        flex-shrink: 0;
-    }
-    
-    .current-picture img {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid var(--accent-primary);
-    }
-    
-    .placeholder-picture {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        background: var(--bg-card);
-        border: 2px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-muted);
-    }
-    
-    .upload-controls {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .upload-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 20px;
-        background: var(--bg-card);
-        color: var(--text-primary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        transition: var(--transition);
-        font-weight: 500;
-        font-size: 0.9rem;
-        max-width: 200px;
-    }
-    
-    .upload-btn:hover {
-        border-color: var(--accent-primary);
-        background: var(--bg-card-hover);
-    }
-    
-    .upload-controls .help-text {
-        color: var(--text-muted);
-        font-size: 0.8rem;
-        margin: 0;
-    }
-    
-    .form-actions {
-        display: flex;
-        gap: 12px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border-color);
-        margin-top: 8px;
-    }
-    
-    .btn-save {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 32px;
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        border: none;
-        border-radius: var(--radius-sm);
-        color: #fff;
-        font-size: 0.95rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        font-family: inherit;
-    }
-    
-    .btn-save:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px var(--accent-glow);
-    }
-    
-    .btn-cancel {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 32px;
-        background: var(--bg-input);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-sm);
-        color: var(--text-secondary);
-        text-decoration: none;
-        font-weight: 500;
-        transition: var(--transition);
-        font-size: 0.95rem;
-    }
-    
-    .btn-cancel:hover {
-        background: var(--border-color);
-        color: var(--text-primary);
-    }
-    
-    .password-section {
-        margin-top: 28px;
-        padding-top: 24px;
-        border-top: 1px solid var(--border-color);
-    }
-    
-    .password-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
-    }
-    
-    .password-info h3 {
-        color: var(--text-primary);
-        margin: 0 0 4px;
-        font-size: 1rem;
-    }
-    
-    .password-info h3 i {
-        color: var(--accent-primary);
-        margin-right: 10px;
-    }
-    
-    .password-info p {
-        color: var(--text-secondary);
-        margin: 0;
-        font-size: 0.9rem;
-    }
-    
-    .btn-change-password {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 24px;
-        background: var(--bg-input);
-        color: var(--text-primary);
-        text-decoration: none;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border-color);
-        font-weight: 500;
-        transition: var(--transition);
-        font-size: 0.9rem;
-        flex-shrink: 0;
-    }
-    
-    .btn-change-password:hover {
-        border-color: var(--accent-primary);
-        background: var(--bg-card-hover);
-        transform: translateY(-2px);
-    }
-    
-    @media (max-width: 768px) {
-        .edit-card {
-            padding: 24px;
+{% block extra_js %}
+<script>
+// Preview profile picture before upload
+document.getElementById('id_profile_picture').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('profilePreview');
+            if (preview.tagName === 'IMG') {
+                preview.src = e.target.result;
+            } else {
+                // Replace placeholder with image
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Profile preview';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '50%';
+                preview.parentNode.replaceChild(img, preview);
+                img.id = 'profilePreview';
+            }
         }
-        
-        .form-row {
-            grid-template-columns: 1fr;
-            gap: 16px;
-        }
-        
-        .profile-picture-upload {
-            flex-direction: column;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .upload-btn {
-            max-width: 100%;
-            justify-content: center;
-        }
-        
-        .form-actions {
-            flex-direction: column;
-        }
-        
-        .btn-save,
-        .btn-cancel {
-            justify-content: center;
-            width: 100%;
-        }
-        
-        .password-info {
-            flex-direction: column;
-            text-align: center;
-        }
-        
-        .btn-change-password {
-            width: 100%;
-            justify-content: center;
-        }
+        reader.readAsDataURL(file);
     }
-</style>
+});
+</script>
 {% endblock %}

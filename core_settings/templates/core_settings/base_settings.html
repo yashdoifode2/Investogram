@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="{% static 'intelligence/css/intelligence.css' %}">
 <style>
 /* ========================================
-   SETTINGS DASHBOARD
+   SETTINGS DASHBOARD - BASE STYLES
    ======================================== */
 .settings-dashboard {
     padding: 0;
@@ -199,8 +199,80 @@
 .settings-nav-item.orange .nav-icon { color: #ffa502; }
 .settings-nav-item.orange:hover .nav-icon { color: #ffa502; }
 
+/* Content area */
 .settings-content {
     min-height: 400px;
+}
+
+/* Base Button Styles */
+.btn-intel {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-intel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px var(--accent-glow);
+    color: #fff;
+    text-decoration: none;
+}
+
+.btn-intel-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-intel-outline:hover {
+    background: var(--bg-card);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: #ff4757;
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-danger:hover {
+    background: #ff6b7a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(255, 71, 87, 0.3);
+    color: #fff;
 }
 
 /* Responsive */
